@@ -1,0 +1,58 @@
+@startuml
+
+allowmixing
+ title Jogo das Moedas - Versão 1
+ left to right direction
+ skinparam classAttributeIconSize 0
+ skinparam packageStyle rectangle
+
+ package "game" {
+   class MainGame {
+     +main(args: String[]): void
+   }
+
+   class Game {
+     -levels: List<char[][]>
+     -map: char[][]
+     -levelNumber: int
+     -playerX: int
+     -playerY: int
+     -score: int
+     -remainingCoins: int
+     -running: boolean
+     -scanner: Scanner
+     +Game()
+     +Game(levelNumber: int)
+     +run(): void
+     -loadLevel(): void
+     -waitCommand(command: String): void
+     -draw(): void
+     -clear(): void
+   }
+
+   class LevelLoader {
+     +loadAll(): List<char[][]>
+     +load(levelNumber: int): char[][]
+     -parseLevel(rows: List<String>, levelNumber: int): char[][]
+   }
+ }
+
+ artifact "levels.txt" as LevelsFile
+ class "Scanner (JDK)" as Scanner <<external>>
+
+ MainGame ..* Game : cria
+ Game ..* LevelLoader : cria e carrega mapas
+ Game --* Scanner : lê comandos
+ LevelLoader ..> LevelsFile : lê fases
+
+ note right of Game
+   Game concentra estado, regras,
+   leitura do teclado, renderização
+   e progressão entre fases.
+ end note
+
+ note bottom of LevelsFile
+   Cada mapa e separado por "---"
+ end note
+
+@enduml
