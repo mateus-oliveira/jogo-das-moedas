@@ -7,6 +7,10 @@ public enum InputsEnum {
     JOYSTICK,
     KEYBOARD;
 
+    public static InputsEnum from() {
+        return KEYBOARD;
+    }
+
     public static InputsEnum from(String mode) {
         try {
             return valueOf(mode.trim().toUpperCase(Locale.ROOT));

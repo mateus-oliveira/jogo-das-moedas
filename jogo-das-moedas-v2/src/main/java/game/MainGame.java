@@ -26,9 +26,11 @@ import game.world.gobjects.Player;
 public class MainGame {
 
     public static void main(String[] args) throws IOException {
-        InputsEnum mode = InputsEnum.from(args.length > 0 ? args[0] : "keyboard");
         int levelNumber = args.length > 1 ? Integer.parseInt(args[1]) : 1;
         List<Grid> grids = new LevelLoader().loadAll(Path.of("levels.txt"));
+        InputsEnum mode = args.length > 0
+            ? InputsEnum.from(args[0])
+            : InputsEnum.from();
 
         if (levelNumber < 1 || levelNumber > grids.size())
             throw new IllegalArgumentException(
