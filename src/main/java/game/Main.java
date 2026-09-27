@@ -35,15 +35,19 @@ public class Main {
         IInputs input;
         IRenderer renderer;
 
-        if (mode.equals("gui")) {
-            input = new ButtonInputs();
-            renderer = new GUIRenderer();
-        } else if (mode.equals("joystick")) {
-            input = new VirtualJoystickInput();
-            renderer = new TerminalRenderer();
-        } else {
-            input = new KeyboardInput();
-            renderer = new TerminalRenderer();
+        switch (mode) {
+            case "gui" -> {
+                input = new ButtonInputs();
+                renderer = new GUIRenderer();
+            }
+            case "joystick" -> {
+                input = new VirtualJoystickInput();
+                renderer = new GUIRenderer();
+            }
+            default -> {
+                input = new KeyboardInput();
+                renderer = new TerminalRenderer();
+            }
         }
 
         Game game = new Game(map, player, coins, input, renderer);
