@@ -3,17 +3,28 @@
 Projeto de apoio da **Aula 08 — Design de Classes: Acoplamento e Coesão**
 Linguagem de Programação II — IMD/UFRN
 
-Este é o **"depois"**. Mesmo jogo, mesmo mapa, mesmas regras, mesma tela —
-e nenhuma linha de "funcionalidade nova". O que mudou foi **onde cada responsabilidade mora**.
+Este é o **"depois"**. O jogo agora oferece cinco mapas carregados de um
+arquivo TXT. Na versão desacoplada, cada classe mantém uma responsabilidade
+clara: o carregador interpreta os dados e o `Main` monta os objetos usados por `Game`.
 
 ---
 
 ## Como executar o jogo
 
 ```bash
-cd jogo-das-modeas
+cd jogo-das-moedas-v2
 javac -d bin $(find src/main/java -name "*.java")
 java -cp bin game.Main
+```
+
+Os cinco mapas ficam em `levels.txt`, na raiz do projeto, separados por uma
+linha `---`. Use `#` para paredes, `.` para chao, `@` para o jogador e `$`
+para moedas. O nivel 1 e o padrao. Para selecionar outro, informe o numero
+depois do modo de entrada/saida:
+
+```bash
+java -cp bin game.Main terminal 3
+java -cp bin game.Main gui 5
 ```
 
 ### Trocando entrada e saída
@@ -22,9 +33,9 @@ Esta é a demonstração principal. O **mesmo jogo**, com três pares diferentes
 de entrada/saída:
 
 ```bash
-java -cp bin game.Main              # teclado + terminal (padrão)
-java -cp bin game.Main gui          # botões clicáveis + janela gráfica
-java -cp bin game.Main joystick     # joystick virtual (mouse) + terminal
+java -cp bin game.Main              # teclado + terminal, nivel 1
+java -cp bin game.Main gui          # botoes clicaveis + janela grafica
+java -cp bin game.Main joystick     # joystick virtual (mouse) + janela grafica
 ```
 
 Pelo Eclipse: `Run As` → `Run Configurations...` → aba `Arguments` →
@@ -50,17 +61,20 @@ src/main/java/game/
 │   ├── KeyboardInput.java         ← entrada pelo teclado
 │   ├── ButtonInputs.java          ← entrada por botões clicáveis (Swing)
 │   └── VirtualJoystickInput.java  ← entrada por joystick simulado (mouse)
+├── levels/
+│   └── LevelLoader.java            ← le o TXT e converte os dados da fase
 ├── ui/
 │   ├── IRenderer.java             ← contrato da saída
 │   ├── TerminalRenderer.java      ← desenha no console
 │   └── GUIRenderer.java           ← desenha numa janela gráfica (Swing)
 └── world/
+   ├── Level.java                ← dados iniciais de uma fase
    ├── Map.java                  ← mapa e paredes
    ├── Progress.java             ← pontuação acumulada entre missões
    └── gobjects/
-      ├── GameObject.java        ← objeto do jogo
-      ├── Player.java            ← posição e movimento do jogador
-      └── Coin.java              ← moedas coletáveis
+      ├── GameObject.java       ← objeto do jogo
+      ├── Player.java           ← posição e movimento do jogador
+      └── Coin.java             ← moedas coletáveis
 ```
 
 ---

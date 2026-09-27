@@ -1,18 +1,23 @@
 package game;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
 import game.inputs.ButtonInputs;
 import game.inputs.IInputs;
 import game.inputs.KeyboardInput;
 import game.inputs.VirtualJoystickInput;
+import game.levels.LevelLoader;
 import game.ui.GUIRenderer;
 import game.ui.IRenderer;
 import game.ui.TerminalRenderer;
+import game.world.Level;
 import game.world.Map;
 import game.world.Progress;
 import game.world.gobjects.Coin;
 import game.world.gobjects.Player;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Este e o unico lugar do sistema que decide QUAIS pecas concretas serao usadas.
@@ -23,16 +28,18 @@ import java.util.List;
  */
 public class Main {
 
-    public static void main(String[] args) {
-        Map map = Map.standard();
-        Player player = new Player(1, 1);
+    public static void main(String[] args) throws IOException {
+        String mode = args.length > 0 ? args[0].trim().toLowerCase() : "terminal";
+        int levelNumber = args.length > 1 ? Integer.parseInt(args[1]) : 1;
+        Level level = new LevelLoader().load(Path.of("levels.txt"), levelNumber);
+        Map map = level.getMap();
+        Player player = new Player(level.getPlayerX(), level.getPlayerY());
         Progress progress = new Progress();
 
         List<Coin> coins = new ArrayList<>();
-        coins.add(new Coin(6, 2, 10));
-        coins.add(new Coin(4, 4, 10));
-
-        String mode = args.length > 0 ? args[0].trim().toLowerCase() : "terminal";
+        for (Level.Position position : level.getCoinPositions()) {
+            coins.add(new Coin(position.getX(), position.getY(), 10));
+        }
 
         IInputs input;
         IRenderer renderer;
