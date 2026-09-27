@@ -2,6 +2,8 @@ package game.inputs;
 
 import java.util.Scanner;
 
+import game.enums.CommandsEnum;
+
 /** Traduz teclas digitadas no console em comandos do jogo. */
 public class KeyboardInput implements IInputs {
 
@@ -12,19 +14,19 @@ public class KeyboardInput implements IInputs {
     }
 
     @Override
-    public Command waitCommand() {
+    public CommandsEnum waitCommand() {
         System.out.print("Comando (w/a/s/d, q para sair): ");
         if (!scanner.hasNextLine())
-            return Command.EXIT;
+            return CommandsEnum.EXIT;
         String key = scanner.nextLine().trim().toLowerCase();
 
         return switch (key) {
-            case "w" -> Command.UP;
-            case "s" -> Command.DOWN;
-            case "a" -> Command.LEFT;
-            case "d" -> Command.RIGHT;
-            case "q" -> Command.EXIT;
-            default -> Command.NONE;
+            case "w" -> CommandsEnum.UP;
+            case "s" -> CommandsEnum.DOWN;
+            case "a" -> CommandsEnum.LEFT;
+            case "d" -> CommandsEnum.RIGHT;
+            case "q" -> CommandsEnum.EXIT;
+            default -> CommandsEnum.NONE;
         };
     }
 

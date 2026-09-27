@@ -10,6 +10,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import game.enums.CommandsEnum;
+
 /**
  * Joystick virtual controlado pelo mouse.
  *
@@ -40,10 +42,10 @@ public class VirtualJoystickInput implements IInputs {
     }
 
     @Override
-    public Command waitCommand() {
+    public CommandsEnum waitCommand() {
         while (true) {
-            Command cmd = getCurrentCommand();
-            if (cmd != Command.NONE) {
+            CommandsEnum cmd = getCurrentCommand();
+            if (cmd != CommandsEnum.NONE) {
                 return cmd;
             }
 
@@ -51,24 +53,24 @@ public class VirtualJoystickInput implements IInputs {
                 Thread.sleep(50);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                return Command.EXIT;
+                return CommandsEnum.EXIT;
             }
         }
     }
 
-    private Command getCurrentCommand() {
+    private CommandsEnum getCurrentCommand() {
         int dx = mouseX - panel.centerX;
         int dy = mouseY - panel.centerY;
         double distance = Math.sqrt(dx * dx + dy * dy);
 
         if (distance < panel.deadZone) {
-            return Command.NONE;
+            return CommandsEnum.NONE;
         }
 
         if (Math.abs(dy) > Math.abs(dx)) {
-            return dy < 0 ? Command.UP : Command.DOWN;
+            return dy < 0 ? CommandsEnum.UP : CommandsEnum.DOWN;
         } else {
-            return dx < 0 ? Command.LEFT : Command.RIGHT;
+            return dx < 0 ? CommandsEnum.LEFT : CommandsEnum.RIGHT;
         }
     }
 

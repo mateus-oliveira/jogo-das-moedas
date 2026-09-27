@@ -2,7 +2,7 @@ package game;
 
 import java.util.List;
 
-import game.inputs.Command;
+import game.enums.CommandsEnum;
 import game.inputs.IInputs;
 import game.ui.IRenderer;
 import game.world.Grid;
@@ -64,13 +64,13 @@ public class Level {
      * que os testes exercitam, sem precisar do laco nem de dispositivo nenhum.
      */
     public void runTurn() {
-        Command command = input.waitCommand();
+        CommandsEnum command = input.waitCommand();
 
-        if (command == Command.EXIT) {
+        if (command == CommandsEnum.EXIT) {
             running = false;
             return;
         }
-        if (command == Command.NONE) {
+        if (command == CommandsEnum.NONE) {
             renderer.showMessage("Unknown command.");
             return;
         }

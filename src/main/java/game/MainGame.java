@@ -5,11 +5,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import game.enums.InputsEnum;
 import game.inputs.IInputs;
+import game.inputs.InputsFactory;
 import game.ui.IRenderer;
-import game.utils.InputsFactory;
+import game.ui.RendererFactory;
 import game.utils.LevelLoader;
-import game.utils.RendererFactory;
 import game.world.Grid;
 import game.world.Progress;
 import game.world.gobjects.Coin;
@@ -25,15 +26,16 @@ import game.world.gobjects.Player;
 public class MainGame {
 
     public static void main(String[] args) throws IOException {
-        String mode = args.length > 0 ? args[0].trim().toLowerCase() : "terminal";
+        InputsEnum mode = InputsEnum.from(args.length > 0 ? args[0] : "keyboard");
         int levelNumber = args.length > 1 ? Integer.parseInt(args[1]) : 1;
         List<Grid> grids = new LevelLoader().loadAll(Path.of("levels.txt"));
-        if (levelNumber < 1 || levelNumber > grids.size()) {
-            throw new IllegalArgumentException("Level must be between 1 and " + grids.size() + ".");
-        }
 
-        IInputs input = InputsFactory.create(mode);
-        IRenderer renderer = RendererFactory.create(mode);
+        if (levelNumber < 1 || levelNumber > grids.size())
+            throw new IllegalArgumentException(
+                "Level must be between 1 and " + grids.size() + ".");
+
+        IInputs input = new InputsFactory().create(mode);
+        IRenderer renderer = new RendererFactory().create(mode);
 
         Progress progress = new Progress();
 
@@ -42,9 +44,8 @@ public class MainGame {
             Player player = new Player(grid.getPlayerX(), grid.getPlayerY());
 
             List<Coin> coins = new ArrayList<>();
-            for (int[] position : grid.getCoinPositions()) {
+            for (int[] position : grid.getCoinPositions())
                 coins.add(new Coin(position[0], position[1], 10));
-            }
 
             Level level = new Level(grid, player, progress, coins, input, renderer);
             if (!level.run()) {

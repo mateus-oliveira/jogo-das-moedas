@@ -31,12 +31,25 @@ allowmixing
       -parseLevel(rows: List<String>, levelNumber: int): Grid
      }
 
-     class InputsFactory {
-       +create(mode: String): IInputs
+     interface "IFactory<E, K>" as IFactory {
+       +create(key: K): E
+     }
+   }
+
+   package "enums" {
+     enum InputsEnum {
+       BUTTONS
+       JOYSTICK
+       KEYBOARD
      }
 
-     class RendererFactory {
-       +create(mode: String): IRenderer
+     enum CommandsEnum {
+       UP
+       DOWN
+       LEFT
+       RIGHT
+       EXIT
+       NONE
      }
    }
 
@@ -92,29 +105,24 @@ allowmixing
 
    package "inputs" {
      interface IInputs {
-       +waitCommand(): Command
+       +waitCommand(): CommandsEnum
        +getDeviceName(): String
      }
 
-     enum Command {
-       UP
-       DOWN
-       LEFT
-       RIGHT
-       EXIT
-       NONE
+     class InputsFactory {
+       +create(mode: InputsEnum): IInputs
      }
 
      class KeyboardInput {
        -scanner: Scanner
-       +waitCommand(): Command
+       +waitCommand(): CommandsEnum
        +getDeviceName(): String
      }
 
      class ButtonInputs {
-       -commands: BlockingQueue<Command>
+       -commands: BlockingQueue<CommandsEnum>
        -frame: JFrame
-       +waitCommand(): Command
+       +waitCommand(): CommandsEnum
        +getDeviceName(): String
      }
 
@@ -123,9 +131,9 @@ allowmixing
        -mouseY: int
        -frame: JFrame
        -panel: JoystickPanel
-       +waitCommand(): Command
+      +waitCommand(): CommandsEnum
        +getDeviceName(): String
-       -getCurrentCommand(): Command
+      -getCurrentCommand(): CommandsEnum
      }
 
      class JoystickPanel <<inner>> {
@@ -139,6 +147,10 @@ allowmixing
        +clear(): void
        +showMessage(message: String): void
       +draw(grid: Grid, player: Player, progress: Progress, coins: List<Coin>): void
+     }
+
+     class RendererFactory {
+       +create(mode: InputsEnum): IRenderer
      }
 
      class TerminalRenderer {
@@ -172,16 +184,19 @@ allowmixing
  MainGame ..> Level : cria e executa cada fase
  MainGame ..> InputsFactory : cria entrada
  MainGame ..> RendererFactory : cria saida
+ MainGame ..> InputsEnum : interpreta modo
  MainGame ..> Progress : cria uma vez e compartilha
  MainGame ..> Player : cria por fase
  MainGame ..> Coin : cria a partir das coordenadas
  LevelLoader ..> LevelsFile : lê fases
  LevelLoader ..> Grid : monta
  InputsFactory ..> IInputs : retorna
+ InputsFactory ..> InputsEnum : recebe modo
  InputsFactory ..> KeyboardInput : cria
  InputsFactory ..> ButtonInputs : cria
  InputsFactory ..> VirtualJoystickInput : cria
  RendererFactory ..> IRenderer : retorna
+ RendererFactory ..> InputsEnum : recebe modo
  RendererFactory ..> TerminalRenderer : cria
  RendererFactory ..> GUIRenderer : cria
 
@@ -191,7 +206,7 @@ allowmixing
  Level --> "0..*" Coin : moedas
  Level --> IInputs : recebe comandos
  Level --> IRenderer : solicita desenho
- Level ..> Command : interpreta
+ Level ..> CommandsEnum : interpreta
 
  Player --|> GameObject
  Coin --|> GameObject
@@ -206,8 +221,11 @@ allowmixing
  JoystickPanel --|> JPanel
  JoystickPanel ..|> MouseMotionListener
 
- IInputs ..> Command : retorna
+ IInputs ..> CommandsEnum : retorna
  Grid "1" --> "0..*" IntArray : coinPositions
+
+ InputsFactory ..|> IFactory
+ RendererFactory ..|> IFactory
 
  note right of Grid
    Grid representa o cenario

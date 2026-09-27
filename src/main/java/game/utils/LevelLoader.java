@@ -26,29 +26,29 @@ public class LevelLoader {
                 currentLevel.add(line);
             }
         }
-        if (!currentLevel.isEmpty()) {
+
+        if (!currentLevel.isEmpty())
             levels.add(currentLevel);
-        }
 
         List<Grid> loadedLevels = new ArrayList<>();
-        for (int index = 0; index < levels.size(); index++) {
+        for (int index = 0; index < levels.size(); index++)
             loadedLevels.add(parseLevel(levels.get(index), index + 1));
-        }
+
         return loadedLevels;
     }
 
     public Grid load(Path file, int levelNumber) throws IOException {
         List<Grid> levels = loadAll(file);
-        if (levelNumber < 1 || levelNumber > levels.size()) {
-            throw new IllegalArgumentException("Level must be between 1 and " + levels.size() + ".");
-        }
+        if (levelNumber < 1 || levelNumber > levels.size())
+            throw new IllegalArgumentException(
+                "Level must be between 1 and " + levels.size() + ".");
         return levels.get(levelNumber - 1);
     }
 
     private Grid parseLevel(List<String> rows, int levelNumber) {
-        if (rows.isEmpty()) {
-            throw new IllegalArgumentException("Level " + levelNumber + " is empty.");
-        }
+        if (rows.isEmpty())
+            throw new IllegalArgumentException(
+                "Level " + levelNumber + " is empty.");
         int width = rows.get(0).length();
         String[] mapRows = new String[rows.size()];
         int playerX = -1;
@@ -56,33 +56,40 @@ public class LevelLoader {
         List<int[]> coins = new ArrayList<>();
 
         for (int y = 0; y < rows.size(); y++) {
-            if (rows.get(y).length() != width) {
-                throw new IllegalArgumentException("Level " + levelNumber + " has rows with different widths.");
-            }
+            if (rows.get(y).length() != width)
+                throw new IllegalArgumentException(
+                    "Level " + levelNumber + " has rows with different widths."
+                );
+
             StringBuilder mapRow = new StringBuilder(width);
             for (int x = 0; x < width; x++) {
                 char cell = rows.get(y).charAt(x);
-                if (cell == '@') {
-                    if (playerX >= 0) {
-                        throw new IllegalArgumentException("Level " + levelNumber + " has more than one player.");
+                switch (cell) {
+                    case '@' -> {
+                        if (playerX >= 0)
+                            throw new IllegalArgumentException(
+                                "Level " + levelNumber + " has more than one player."
+                            );
+                        playerX = x;
+                        playerY = y;
+                        mapRow.append(' ');
                     }
-                    playerX = x;
-                    playerY = y;
-                    mapRow.append(' ');
-                } else if (cell == '$') {
-                    coins.add(new int[] { x, y });
-                    mapRow.append(' ');
-                } else if (cell == '#' || cell == '.') {
-                    mapRow.append(cell == '#' ? '#' : ' ');
-                } else {
-                    throw new IllegalArgumentException("Invalid character in level " + levelNumber + ": " + cell);
+                    case '$' -> {
+                        coins.add(new int[] { x, y });
+                        mapRow.append(' ');
+                    }
+                    case '#', '.' -> mapRow.append(cell == '#' ? '#' : ' ');
+                    default -> throw new IllegalArgumentException(
+                        "Invalid character in level " + levelNumber + ": " + cell
+                    );
                 }
             }
             mapRows[y] = mapRow.toString();
         }
 
         if (playerX < 0 || coins.isEmpty()) {
-            throw new IllegalArgumentException("Each level needs one player and at least one coin.");
+            throw new IllegalArgumentException(
+                "Each level needs one player and at least one coin.");
         }
         return new Grid(mapRows, playerX, playerY, coins);
     }

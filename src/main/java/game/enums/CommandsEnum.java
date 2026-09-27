@@ -1,13 +1,7 @@
-package game.inputs;
+package game.enums;
 
-/**
- * A LINGUAGEM COMUM DO JOGO.
- *
- * O jogo nao entende "tecla W", "eixo Y do analogico" nem "swipe para cima".
- * Ele entende CIMA. Cada fonte de entrada e responsavel por traduzir o que
- * conhece para um destes comandos.
- */
-public enum Command {
+/** Comandos que a fase entende, independentes do dispositivo de entrada. */
+public enum CommandsEnum {
 
     UP(0, -1),
     DOWN(0, 1),
@@ -19,7 +13,7 @@ public enum Command {
     private final int deltaX;
     private final int deltaY;
 
-    Command(int deltaX, int deltaY) {
+    CommandsEnum(int deltaX, int deltaY) {
         this.deltaX = deltaX;
         this.deltaY = deltaY;
     }

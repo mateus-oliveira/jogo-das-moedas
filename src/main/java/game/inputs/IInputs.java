@@ -1,5 +1,7 @@
 package game.inputs;
 
+import game.enums.CommandsEnum;
+
 /**
  * O CONTRATO DA ENTRADA.
  *
@@ -14,8 +16,9 @@ package game.inputs;
 public interface IInputs {
 
     /** Devolve o proximo comando do jogador, ja traduzido. */
-    Command waitCommand();
+    CommandsEnum waitCommand();
 
     /** Nome do dispositivo, apenas para exibir na tela. */
     String getDeviceName();
+
 }

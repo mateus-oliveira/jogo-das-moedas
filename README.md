@@ -24,27 +24,31 @@ para moedas. O nivel 1 e o padrao. Para iniciar em outro nivel, informe o
 numero depois do modo de entrada/saida; a progressao segue ate o ultimo:
 
 ```bash
-java -cp bin game.MainGame terminal 3
-java -cp bin game.MainGame gui 5
+java -cp bin game.MainGame keyboard 3
+java -cp bin game.MainGame buttons 5
 ```
 
 ### Trocando entrada e saída
 
 Esta é a demonstração principal. O **mesmo jogo**, com três pares diferentes
-de entrada/saída:
+de entrada/saída, definidos por `InputsEnum`:
 
 ```bash
-java -cp bin game.MainGame              # teclado + terminal, nivel 1
-java -cp bin game.MainGame gui          # botoes clicaveis + janela grafica
-java -cp bin game.MainGame joystick     # joystick virtual (mouse) + janela grafica
+java -cp bin game.MainGame              # KEYBOARD: teclado + terminal
+java -cp bin game.MainGame buttons      # BUTTONS: botoes + janela grafica
+java -cp bin game.MainGame joystick     # JOYSTICK: joystick + janela grafica
 ```
 
 Pelo Eclipse: `Run As` → `Run Configurations...` → aba `Arguments` →
-escreva `gui` ou `joystick` em *Program arguments*.
+escreva `keyboard`, `buttons` ou `joystick` em *Program arguments*.
 
 > Em cada modo, o jogo abre janelas diferentes (`GUIRenderer`, `ButtonInputs`,
 > `VirtualJoystickInput`), mas a fase não precisa saber disso. Quem junta as peças
 > é só o `MainGame`. O ponto é que **a classe `Level` não muda em nenhum dos três casos**.
+
+`InputsFactory` e `RendererFactory` recebem o mesmo `InputsEnum`: `BUTTONS`,
+`JOYSTICK` ou `KEYBOARD`. Sem argumento, `MainGame` usa `KEYBOARD`.
+As duas implementam `IFactory<T>`, cujo contrato define o método `create`.
 
 ---
 
@@ -56,18 +60,21 @@ escreva `gui` ou `joystick` em *Program arguments*.
 src/main/java/game/
 ├── MainGame.java                  ← coordena fases e escolhe implementacoes
 ├── Level.java                     ← regras e fluxo de uma fase
+├── enums/
+│   ├── CommandsEnum.java          ← comandos reconhecidos pela fase
+│   └── InputsEnum.java            ← modos de entrada e saída
 ├── inputs/
-│   ├── Command.java               ← comandos reconhecidos pelo jogo
 │   ├── IInputs.java               ← contrato das entradas
+│   ├── InputsFactory.java          ← cria entrada conforme InputsEnum
 │   ├── KeyboardInput.java         ← entrada pelo teclado
 │   ├── ButtonInputs.java          ← entrada por botões clicáveis (Swing)
 │   └── VirtualJoystickInput.java  ← entrada por joystick simulado (mouse)
 ├── utils/
 │   ├── LevelLoader.java            ← le o TXT e converte os dados da fase
-│   ├── InputsFactory.java          ← cria a entrada conforme o modo
-│   └── RendererFactory.java       ← cria a saida conforme o modo
+│   └── IFactory.java               ← contrato generico para factories
 ├── ui/
 │   ├── IRenderer.java             ← contrato da saída
+│   ├── RendererFactory.java        ← cria saida conforme InputsEnum
 │   ├── TerminalRenderer.java      ← desenha no console
 │   └── GUIRenderer.java           ← desenha numa janela gráfica (Swing)
 └── world/
@@ -95,7 +102,8 @@ public Level(Grid grid, Player player, Progress progress,
 `MainGame` carrega cada `Grid`, monta o `Level` correspondente e preserva o
 objeto `Progress` entre as fases. A fase depende das interfaces `IInputs` e
 `IRenderer`, sem conhecer as implementacoes concretas. `InputsFactory` e
-`RendererFactory` escolhem essas implementacoes com base no modo informado.
+`RendererFactory` escolhem essas implementacoes com base no modo informado e
+implementam `IFactory<IInputs>` e `IFactory<IRenderer>`, respectivamente.
 
 `Player` representa o avatar na fase; `Progress` guarda a pontuação
 cumulativa e é compartilhado pelas instâncias de `Level` criadas por `MainGame`.
