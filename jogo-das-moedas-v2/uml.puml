@@ -1,0 +1,247 @@
+@startuml
+allowmixing
+ title Jogo das Moedas - Versao 2 (desacoplada)
+ left to right direction
+ skinparam classAttributeIconSize 0
+ skinparam packageStyle rectangle
+
+ package "game" {
+   class MainGame {
+     +main(args: String[]): void
+   }
+
+   class Level {
+     -grid: Grid
+     -player: Player
+     -progress: Progress
+     -coins: List<Coin>
+     -input: IInputs
+     -renderer: IRenderer
+     -running: boolean
+     +run(): boolean
+     +runTurn(): void
+     -collectCoinAtCurrentPosition(): void
+     -allCoinsCollected(): boolean
+   }
+
+   package "utils" {
+     class LevelLoader {
+      +loadAll(file: Path): List<Grid>
+      +load(file: Path, levelNumber: int): Grid
+      -parseLevel(rows: List<String>, levelNumber: int): Grid
+     }
+
+     interface "IFactory<E, K>" as IFactory {
+       +create(key: K): E
+     }
+   }
+
+   package "enums" {
+     enum InputsEnum {
+       BUTTONS
+       JOYSTICK
+       KEYBOARD
+     }
+
+     enum CommandsEnum {
+       UP
+       DOWN
+       LEFT
+       RIGHT
+       EXIT
+       NONE
+     }
+   }
+
+   package "world" {
+    class Grid {
+       -rows: String[]
+       -playerX: int
+       -playerY: int
+       -coinPositions: List<int[]>
+       +getPlayerX(): int
+       +getPlayerY(): int
+       +getCoinPositions(): List<int[]>
+       +getHeight(): int
+       +getWidth(): int
+       +isWall(x: int, y: int): boolean
+     }
+
+     class Progress {
+       -score: int
+       +addScore(amount: int): void
+       +getScore(): int
+     }
+
+     package "gobjects" {
+       abstract class GameObject {
+         -x: int
+         -y: int
+         #GameObject(x: int, y: int)
+         +getX(): int
+         +getY(): int
+         #setPosition(x: int, y: int): void
+         +isAt(x: int, y: int): boolean
+         {abstract} +getSymbol(): char
+       }
+
+       class Player {
+         +Player(x: int, y: int)
+         +moveTo(newX: int, newY: int): void
+         +getSymbol(): char
+       }
+
+       class Coin {
+         -value: int
+         -collected: boolean
+         +Coin(x: int, y: int, value: int)
+         +getValue(): int
+         +isCollected(): boolean
+         +collect(): void
+         +getSymbol(): char
+       }
+     }
+   }
+
+   package "inputs" {
+     interface IInputs {
+       +waitCommand(): CommandsEnum
+       +getDeviceName(): String
+     }
+
+     class InputsFactory {
+       +create(mode: InputsEnum): IInputs
+     }
+
+     class KeyboardInput {
+       -scanner: Scanner
+       +waitCommand(): CommandsEnum
+       +getDeviceName(): String
+     }
+
+     class ButtonInputs {
+       -commands: BlockingQueue<CommandsEnum>
+       -frame: JFrame
+       +waitCommand(): CommandsEnum
+       +getDeviceName(): String
+     }
+
+     class VirtualJoystickInput {
+       -mouseX: int
+       -mouseY: int
+       -frame: JFrame
+       -panel: JoystickPanel
+      +waitCommand(): CommandsEnum
+       +getDeviceName(): String
+      -getCurrentCommand(): CommandsEnum
+     }
+
+     class JoystickPanel <<inner>> {
+       +mouseMoved(event: MouseEvent): void
+       +mouseDragged(event: MouseEvent): void
+     }
+   }
+
+   package "ui" {
+     interface IRenderer {
+       +clear(): void
+       +showMessage(message: String): void
+      +draw(grid: Grid, player: Player, progress: Progress, coins: List<Coin>): void
+     }
+
+     class RendererFactory {
+       +create(mode: InputsEnum): IRenderer
+     }
+
+     class TerminalRenderer {
+       +clear(): void
+       +showMessage(message: String): void
+      +draw(grid: Grid, player: Player, progress: Progress, coins: List<Coin>): void
+      -symbolAt(grid: Grid, player: Player, coins: List<Coin>, x: int, y: int): char
+     }
+
+     class GUIRenderer {
+       -frame: JFrame
+       -messageLabel: JLabel
+      -grid: Grid
+       -player: Player
+       -progress: Progress
+       -coins: List<Coin>
+       +clear(): void
+       +showMessage(message: String): void
+      +draw(grid: Grid, player: Player, progress: Progress, coins: List<Coin>): void
+       #paintComponent(g: Graphics): void
+     }
+   }
+ }
+
+ artifact "levels.txt" as LevelsFile
+ class "int[]" as IntArray <<array>>
+ class "JPanel (Swing)" as JPanel <<external>>
+ interface "MouseMotionListener (AWT)" as MouseMotionListener <<external>>
+
+ MainGame ..> LevelLoader : carrega todas as fases
+ MainGame ..> Level : cria e executa cada fase
+ MainGame ..> InputsFactory : cria entrada
+ MainGame ..> RendererFactory : cria saida
+ MainGame ..> InputsEnum : interpreta modo
+ MainGame ..> Progress : cria uma vez e compartilha
+ MainGame ..> Player : cria por fase
+ MainGame ..> Coin : cria a partir das coordenadas
+ LevelLoader ..> LevelsFile : lê fases
+ LevelLoader ..> Grid : monta
+ InputsFactory ..> IInputs : retorna
+ InputsFactory ..> InputsEnum : recebe modo
+ InputsFactory ..> KeyboardInput : cria
+ InputsFactory ..> ButtonInputs : cria
+ InputsFactory ..> VirtualJoystickInput : cria
+ RendererFactory ..> IRenderer : retorna
+ RendererFactory ..> InputsEnum : recebe modo
+ RendererFactory ..> TerminalRenderer : cria
+ RendererFactory ..> GUIRenderer : cria
+
+ Level --> Grid : conteudo da fase
+ Level --> Player : jogador
+ Level --> Progress : pontuacao acumulada
+ Level --> "0..*" Coin : moedas
+ Level --> IInputs : recebe comandos
+ Level --> IRenderer : solicita desenho
+ Level ..> CommandsEnum : interpreta
+
+ Player --|> GameObject
+ Coin --|> GameObject
+
+ KeyboardInput ..|> IInputs
+ ButtonInputs ..|> IInputs
+ VirtualJoystickInput ..|> IInputs
+ TerminalRenderer ..|> IRenderer
+ GUIRenderer ..|> IRenderer
+ GUIRenderer --|> JPanel
+ VirtualJoystickInput *-- JoystickPanel
+ JoystickPanel --|> JPanel
+ JoystickPanel ..|> MouseMotionListener
+
+ IInputs ..> CommandsEnum : retorna
+ Grid "1" --> "0..*" IntArray : coinPositions
+
+ InputsFactory ..|> IFactory
+ RendererFactory ..|> IFactory
+
+ note right of Grid
+   Grid representa o cenario
+   (paredes e dimensoes) e os
+   dados iniciais da fase.
+   Cada posicao em coinPositions
+   e int[] {x, y}.
+ end note
+
+ note bottom of Level
+   Level aplica as regras de uma fase.
+   MainGame coordena a progressao e
+   preserva Progress entre partidas.
+ end note
+
+ note bottom of LevelsFile
+   Os mapas sao separados por ---.
+ end note
+@enduml
