@@ -31,18 +31,14 @@ public class Game {
     private int remainingCoins;
     private boolean running = true;
 
-    // ACOPLAMENTO: a classe Game decide sozinha que a entrada vem do teclado.
-    // Para trocar por joystick ou toque na tela, alguem precisa editar ESTA linha.
     private final Scanner scanner = new Scanner(System.in);
 
-    public Game() {
-        this(1);
-    }
-
+    public Game() { this(1); }
     public Game(int levelNumber) {
         this.levels = new LevelLoader().loadAll();
         if (levelNumber < 1 || levelNumber > levels.size()) {
-            throw new IllegalArgumentException("Level must be between 1 and " + levels.size() + ".");
+            throw new IllegalArgumentException(
+                "Level must be between 1 and " + levels.size() + ".");
         }
         this.levelNumber = levelNumber;
         loadLevel();
@@ -82,9 +78,9 @@ public class Game {
                 waitCommand(command);
             }
 
-            if (!running) {
+            if (!running)
                 break;
-            }
+
             if (levelNumber == levels.size()) {
                 System.out.println("FIM DE JOGO - Score: " + score);
                 return;
@@ -136,9 +132,8 @@ public class Game {
             System.out.println("Coin collected! Score: " + score);
         }
 
-        if (remainingCoins == 0) {
+        if (remainingCoins == 0)
             System.out.println("You collected all coins!");
-        }
     }
 
     // Desenhar tambem esta aqui dentro, preso ao System.out.
@@ -147,11 +142,10 @@ public class Game {
         for (int row = 0; row < map.length; row++) {
             StringBuilder text = new StringBuilder();
             for (int column = 0; column < map[row].length; column++) {
-                if (row == playerY && column == playerX) {
+                if (row == playerY && column == playerX)
                     text.append('@');
-                } else {
+                else
                     text.append(map[row][column]);
-                }
             }
             System.out.println(text.toString());
         }
