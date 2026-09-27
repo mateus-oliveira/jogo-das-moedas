@@ -26,28 +26,33 @@ import javax.swing.SwingUtilities;
  * chama estes metodos (a classe Game) continua rodando na thread principal,
  * sem nunca precisar saber disso.
  */
-public class GUIRenderer implements IRenderer {
+public class GUIRenderer extends JPanel implements IRenderer {
 
-    private static final int CELL_SIZE = 32;
+    private static final int CELL_SIZE = 80;
 
     private final JFrame frame;
-    private final GridPanel gridPanel;
     private final JLabel messageLabel;
+    private Map map;
+    private Player player;
+    private List<Coin> coins;
 
     public GUIRenderer() {
-        this.gridPanel = new GridPanel();
         this.messageLabel = new JLabel(" ");
         messageLabel.setFont(messageLabel.getFont().deriveFont(Font.BOLD, 14f));
+
+        setBackground(Color.BLACK);
+        setPreferredSize(new Dimension(8 * CELL_SIZE, 6 * CELL_SIZE + 24));
 
         this.frame = new JFrame("Jogo das Moedas");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
-        frame.add(gridPanel, BorderLayout.CENTER);
         frame.add(messageLabel, BorderLayout.SOUTH);
-        frame.pack();
-        frame.setLocationRelativeTo(null);
-
-        SwingUtilities.invokeLater(() -> frame.setVisible(true));
+        SwingUtilities.invokeLater(() -> {
+            frame.add(this, BorderLayout.CENTER);
+            frame.pack();
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
+        });
     }
 
     @Override
@@ -62,58 +67,40 @@ public class GUIRenderer implements IRenderer {
 
     @Override
     public void draw(Map map, Player player, List<Coin> coins) {
-        SwingUtilities.invokeLater(() -> gridPanel.updateState(map, player, coins));
-    }
-
-    /** Painel responsavel apenas por pintar o estado atual do jogo. */
-    private static class GridPanel extends JPanel {
-
-        private Map map;
-        private Player player;
-        private List<Coin> coins;
-
-        GridPanel() {
-            setBackground(Color.BLACK);
-            setPreferredSize(new Dimension(8 * CELL_SIZE, 6 * CELL_SIZE + 24));
-        }
-
-        void updateState(Map map, Player player, List<Coin> coins) {
+        SwingUtilities.invokeLater(() -> {
             this.map = map;
             this.player = player;
             this.coins = coins;
             setPreferredSize(new Dimension(map.getWidth() * CELL_SIZE, map.getHeight() * CELL_SIZE + 24));
             revalidate();
             repaint();
+        });
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        if (map == null)
+            return;
+
+        g.setColor(Color.DARK_GRAY);
+        for (int y = 0; y < map.getHeight(); y++) {
+            for (int x = 0; x < map.getWidth(); x++) {
+                if (map.isWall(x, y))
+                    g.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            }
         }
 
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            if (map == null) {
-                return;
-            }
-
-            g.setColor(Color.DARK_GRAY);
-            for (int y = 0; y < map.getHeight(); y++) {
-                for (int x = 0; x < map.getWidth(); x++) {
-                    if (map.isWall(x, y)) {
-                        g.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-                    }
-                }
-            }
-
-            g.setColor(Color.YELLOW);
-            for (Coin coin : coins) {
-                if (!coin.isCollected()) {
-                    g.fillOval(coin.getX() * CELL_SIZE + 8, coin.getY() * CELL_SIZE + 8, CELL_SIZE - 16, CELL_SIZE - 16);
-                }
-            }
-
-            g.setColor(Color.CYAN);
-            g.fillRect(player.getX() * CELL_SIZE + 4, player.getY() * CELL_SIZE + 4, CELL_SIZE - 8, CELL_SIZE - 8);
-
-            g.setColor(Color.WHITE);
-            g.drawString("Score: " + player.getScore(), 4, map.getHeight() * CELL_SIZE + 18);
+        g.setColor(Color.YELLOW);
+        for (Coin coin : coins) {
+            if (!coin.isCollected())
+                g.fillOval(coin.getX() * CELL_SIZE + 8, coin.getY() * CELL_SIZE + 8, CELL_SIZE - 16, CELL_SIZE - 16);
         }
+
+        g.setColor(Color.CYAN);
+        g.fillRect(player.getX() * CELL_SIZE + 4, player.getY() * CELL_SIZE + 4, CELL_SIZE - 8, CELL_SIZE - 8);
+
+        g.setColor(Color.WHITE);
+        g.drawString("Score: " + player.getScore(), 4, map.getHeight() * CELL_SIZE + 18);
     }
 }

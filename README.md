@@ -93,60 +93,9 @@ Duas decisões diferentes no mesmo projeto, e vale entender por quê:
 | | Escolha | Motivo |
 |---|---|---|
 | `IInputs` | **interface** | Teclado, joystick e toque não têm **nenhum código em comum** — cada um lê de um lugar diferente. Não há nada a herdar, só um contrato a cumprir. |
-| `Entity` | **classe abstrata** | Jogador e moeda compartilham **estado real** (as coordenadas `x` e `y`) e o código que cuida dele. Só o símbolo desenhado muda — e é o único método abstrato. |
+| `GameObject` | **classe abstrata** | Jogador e moeda compartilham **estado real** (as coordenadas `x` e `y`) e o código que cuida dele. Só o símbolo desenhado muda — e é o único método abstrato. |
 
 ### 3. Polimorfismo
 
 O método `Game.runTurn()` chama `input.waitCommand()` sem nunca perguntar
 que tipo de entrada é aquela. Quem decide como responder é o objeto concreto, em tempo de execução.
-
-O teste `InputPolymorphismTest` prova isso: o mesmo percurso feito pelo teclado e por
-botões clicáveis produz **exatamente a mesma pontuação**.
-
----
-
-## Sobre os testes
-
-O arquivo mais importante para a aula não é um teste — é o
-`src/test/java/game/fakes/IInputsFake.java`:
-
-```java
-public class IInputsFake implements IInputs {
-    // devolve comandos combinados de antemão
-}
-```
-
-É uma **quarta fonte de entrada**, que existe só para os testes. Nenhuma linha
-de `Game` precisou ser alterada para ela funcionar — exatamente como aconteceria
-se amanhã chegasse um controle de Xbox.
-
-Há dois caminhos para o mesmo objetivo, e os dois estão no projeto:
-
-| Arquivo | Abordagem |
-|---|---|
-| `GameTest.java` | dublês escritos à mão (`IInputsFake`, `RenderizadorFake`) |
-| `GameComMockitoTest.java` | a biblioteca **Mockito** cria o dublê sozinha |
-
-Os dois só funcionam porque `Game` depende de **interfaces**. Se ela fizesse
-`new EntradaTeclado()` lá dentro, não haveria onde encaixar nenhum dos dois.
-
----
-
-## Exercícios propostos
-
-1. **Crie uma `EntradaComandosGravados`** que leia uma sequência de comandos de um
-   vetor de `String` (tipo `"cima,cima,direita"`) e faça o jogo rodar sozinho com ela.
-   *Quantos arquivos existentes você precisou modificar? Resposta esperada: apenas o `Main`.*
-
-2. **Crie um `RenderizadorSilencioso`** que não imprime nada. Rode o jogo com ele.
-   *Quanto da classe `Game` você precisou tocar?*
-
-3. **Adicione uma `Parede` móvel** ou um novo tipo de entidade herdando de `Entidade`.
-   *Onde exatamente o código novo encosta no código velho?*
-
-4. **Mude o valor da moeda para 25 pontos** e compile novamente com `javac`.
-   *Qual teste quebra? Ele quebrou porque a regra mudou ou porque o teste era frágil?*
-
-5. **Compare os dois `GameTest.java`** (este e o do `jogo-acoplado`) lado a lado.
-   Conte quantas linhas de cada arquivo falam sobre **as regras do jogo** e quantas
-   falam sobre **contornar o acoplamento**.
