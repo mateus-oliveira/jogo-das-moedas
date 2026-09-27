@@ -1,10 +1,11 @@
 package game.ui;
 
-import game.world.Map;
+import java.util.List;
+
+import game.world.Level;
 import game.world.Progress;
 import game.world.gobjects.Coin;
 import game.world.gobjects.Player;
-import java.util.List;
 
 /**
  * O CONTRATO DA SAIDA.
@@ -19,6 +20,6 @@ public interface IRenderer {
 
     void showMessage(String message);
 
-    void draw(Map map, Player player, Progress progress, List<Coin> coins);
+    void draw(Level level, Player player, Progress progress, List<Coin> coins);
 
 }

@@ -1,19 +1,21 @@
 package game.ui;
 
-import game.world.Map;
-import game.world.Progress;
-import game.world.gobjects.Coin;
-import game.world.gobjects.Player;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.util.List;
+
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+
+import game.world.Level;
+import game.world.Progress;
+import game.world.gobjects.Coin;
+import game.world.gobjects.Player;
 
 /**
  * Desenha o jogo numa janela grafica (Swing), em vez do console.
@@ -33,7 +35,7 @@ public class GUIRenderer extends JPanel implements IRenderer {
 
     private final JFrame frame;
     private final JLabel messageLabel;
-    private Map map;
+    private Level level;
     private Player player;
     private Progress progress;
     private List<Coin> coins;
@@ -68,13 +70,13 @@ public class GUIRenderer extends JPanel implements IRenderer {
     }
 
     @Override
-    public void draw(Map map, Player player, Progress progress, List<Coin> coins) {
+    public void draw(Level level, Player player, Progress progress, List<Coin> coins) {
         SwingUtilities.invokeLater(() -> {
-            this.map = map;
+            this.level = level;
             this.player = player;
             this.progress = progress;
             this.coins = coins;
-            setPreferredSize(new Dimension(map.getWidth() * CELL_SIZE, map.getHeight() * CELL_SIZE + 24));
+            setPreferredSize(new Dimension(level.getWidth() * CELL_SIZE, level.getHeight() * CELL_SIZE + 24));
             revalidate();
             repaint();
         });
@@ -83,13 +85,13 @@ public class GUIRenderer extends JPanel implements IRenderer {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        if (map == null)
+        if (level == null)
             return;
 
         g.setColor(Color.DARK_GRAY);
-        for (int y = 0; y < map.getHeight(); y++) {
-            for (int x = 0; x < map.getWidth(); x++) {
-                if (map.isWall(x, y))
+        for (int y = 0; y < level.getHeight(); y++) {
+            for (int x = 0; x < level.getWidth(); x++) {
+                if (level.isWall(x, y))
                     g.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
             }
         }
@@ -104,6 +106,6 @@ public class GUIRenderer extends JPanel implements IRenderer {
         g.fillRect(player.getX() * CELL_SIZE + 4, player.getY() * CELL_SIZE + 4, CELL_SIZE - 8, CELL_SIZE - 8);
 
         g.setColor(Color.WHITE);
-        g.drawString("Score: " + progress.getScore(), 4, map.getHeight() * CELL_SIZE + 18);
+        g.drawString("Score: " + progress.getScore(), 4, level.getHeight() * CELL_SIZE + 18);
     }
 }

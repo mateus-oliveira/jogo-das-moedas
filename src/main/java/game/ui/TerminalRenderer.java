@@ -1,10 +1,11 @@
 package game.ui;
 
-import game.world.Map;
+import java.util.List;
+
+import game.world.Level;
 import game.world.Progress;
 import game.world.gobjects.Coin;
 import game.world.gobjects.Player;
-import java.util.List;
 
 /** Draws the game in text mode. */
 public class TerminalRenderer implements IRenderer {
@@ -16,19 +17,19 @@ public class TerminalRenderer implements IRenderer {
     }
 
     @Override
-    public void draw(Map map, Player player, Progress progress, List<Coin> coins) {
+    public void draw(Level level, Player player, Progress progress, List<Coin> coins) {
         System.out.println();
-        for (int y = 0; y < map.getHeight(); y++) {
+        for (int y = 0; y < level.getHeight(); y++) {
             StringBuilder line = new StringBuilder();
-            for (int x = 0; x < map.getWidth(); x++) {
-                line.append(symbolAt(map, player, coins, x, y));
+            for (int x = 0; x < level.getWidth(); x++) {
+                line.append(symbolAt(level, player, coins, x, y));
             }
             System.out.println(line.toString());
         }
         System.out.println("Score: " + progress.getScore());
     }
 
-    private char symbolAt(Map map, Player player, List<Coin> coins, int x, int y) {
+    private char symbolAt(Level level, Player player, List<Coin> coins, int x, int y) {
         if (player.isAt(x, y))
             return player.getSymbol();
         for (Coin coin : coins) {
@@ -36,7 +37,7 @@ public class TerminalRenderer implements IRenderer {
                 return coin.getSymbol();
             }
         }
-        if (map.isWall(x, y))
+        if (level.isWall(x, y))
             return '#';
         return ' ';
     }

@@ -9,12 +9,11 @@ import game.inputs.ButtonInputs;
 import game.inputs.IInputs;
 import game.inputs.KeyboardInput;
 import game.inputs.VirtualJoystickInput;
-import game.levels.LevelLoader;
 import game.ui.GUIRenderer;
 import game.ui.IRenderer;
 import game.ui.TerminalRenderer;
+import game.utils.LevelLoader;
 import game.world.Level;
-import game.world.Map;
 import game.world.Progress;
 import game.world.gobjects.Coin;
 import game.world.gobjects.Player;
@@ -31,14 +30,9 @@ public class Main {
     public static void main(String[] args) throws IOException {
         String mode = args.length > 0 ? args[0].trim().toLowerCase() : "terminal";
         int levelNumber = args.length > 1 ? Integer.parseInt(args[1]) : 1;
-        Level level = new LevelLoader().load(Path.of("levels.txt"), levelNumber);
-        Map map = level.getMap();
-        Player player = new Player(level.getPlayerX(), level.getPlayerY());
-        Progress progress = new Progress();
-
-        List<Coin> coins = new ArrayList<>();
-        for (Level.Position position : level.getCoinPositions()) {
-            coins.add(new Coin(position.getX(), position.getY(), 10));
+        List<Level> levels = new LevelLoader().loadAll(Path.of("levels.txt"));
+        if (levelNumber < 1 || levelNumber > levels.size()) {
+            throw new IllegalArgumentException("Level must be between 1 and " + levels.size() + ".");
         }
 
         IInputs input;
@@ -59,7 +53,22 @@ public class Main {
             }
         }
 
-        Game game = new Game(map, player, progress, coins, input, renderer);
-        game.run();
+        Progress progress = new Progress();
+        for (int index = levelNumber - 1; index < levels.size(); index++) {
+            Level level = levels.get(index);
+            Player player = new Player(level.getPlayerX(), level.getPlayerY());
+
+            List<Coin> coins = new ArrayList<>();
+            for (int[] position : level.getCoinPositions()) {
+                coins.add(new Coin(position[0], position[1], 10));
+            }
+
+            Game game = new Game(level, player, progress, coins, input, renderer);
+            if (!game.run()) {
+                renderer.showMessage("Final score: " + progress.getScore());
+                return;
+            }
+        }
+        renderer.showMessage("FIM DE JOGO - Score: " + progress.getScore());
     }
 }

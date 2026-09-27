@@ -1,13 +1,14 @@
 package game;
 
+import java.util.List;
+
 import game.inputs.Command;
 import game.inputs.IInputs;
 import game.ui.IRenderer;
-import game.world.Map;
+import game.world.Level;
 import game.world.Progress;
 import game.world.gobjects.Coin;
 import game.world.gobjects.Player;
-import java.util.List;
 
 /**
  * VERSAO 2 - BAIXO ACOPLAMENTO / ALTA COESAO
@@ -22,7 +23,7 @@ import java.util.List;
  */
 public class Game {
 
-    private final Map map;
+    private final Level level;
     private final Player player;
     private final Progress progress;
     private final List<Coin> coins;
@@ -32,14 +33,14 @@ public class Game {
     private boolean running = true;
 
     public Game(
-        Map map,
+        Level level,
         Player player,
         Progress progress,
         List<Coin> coins,
         IInputs input,
         IRenderer renderer
     ) {
-        this.map = map;
+        this.level = level;
         this.player = player;
         this.progress = progress;
         this.coins = coins;
@@ -47,15 +48,15 @@ public class Game {
         this.renderer = renderer;
     }
 
-    public void run() {
+    public boolean run() {
         renderer.clear();
         renderer.showMessage("=== Collect the coins ($) - control: " + input.getDeviceName() + " ===");
-        renderer.draw(map, player, progress, coins);
+        renderer.draw(level, player, progress, coins);
 
         while (running) {
             runTurn();
         }
-        renderer.showMessage("Final score: " + progress.getScore());
+        return allCoinsCollected();
     }
 
     /**
@@ -77,14 +78,14 @@ public class Game {
         int destinationX = player.getX() + command.getDeltaX();
         int destinationY = player.getY() + command.getDeltaY();
 
-        if (map.isWall(destinationX, destinationY)) {
+        if (level.isWall(destinationX, destinationY)) {
             renderer.showMessage("Wall! You cannot go there.");
             return;
         }
 
         player.moveTo(destinationX, destinationY);
         collectCoinAtCurrentPosition();
-        renderer.draw(map, player, progress, coins);
+        renderer.draw(level, player, progress, coins);
 
         if (allCoinsCollected()) {
             renderer.showMessage("You collected all coins!");

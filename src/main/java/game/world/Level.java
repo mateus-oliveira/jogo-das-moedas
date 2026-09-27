@@ -5,20 +5,18 @@ import java.util.List;
 /** Dados iniciais de uma fase, sem regras de carregamento ou execucao. */
 public class Level {
 
-    private final Map map;
+    private static final char WALL = '#';
+
+    private final String[] rows;
     private final int playerX;
     private final int playerY;
-    private final List<Position> coinPositions;
+    private final List<int[]> coinPositions;
 
-    public Level(Map map, int playerX, int playerY, List<Position> coinPositions) {
-        this.map = map;
+    public Level(String[] rows, int playerX, int playerY, List<int[]> coinPositions) {
+        this.rows = rows.clone();
         this.playerX = playerX;
         this.playerY = playerY;
         this.coinPositions = List.copyOf(coinPositions);
-    }
-
-    public Map getMap() {
-        return map;
     }
 
     public int getPlayerX() {
@@ -29,25 +27,26 @@ public class Level {
         return playerY;
     }
 
-    public List<Position> getCoinPositions() {
+    public List<int[]> getCoinPositions() {
         return coinPositions;
     }
 
-    public static class Position {
-        private final int x;
-        private final int y;
+    public int getHeight() {
+        return rows.length;
+    }
 
-        public Position(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
+    public int getWidth() {
+        return rows[0].length();
+    }
 
-        public int getX() {
-            return x;
+    /** Fora do nivel tambem conta como parede. */
+    public boolean isWall(int x, int y) {
+        if (y < 0 || y >= getHeight()) {
+            return true;
         }
-
-        public int getY() {
-            return y;
+        if (x < 0 || x >= rows[y].length()) {
+            return true;
         }
+        return rows[y].charAt(x) == WALL;
     }
 }

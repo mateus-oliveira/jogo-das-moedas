@@ -19,8 +19,8 @@ java -cp bin game.Main
 
 Os cinco mapas ficam em `levels.txt`, na raiz do projeto, separados por uma
 linha `---`. Use `#` para paredes, `.` para chao, `@` para o jogador e `$`
-para moedas. O nivel 1 e o padrao. Para selecionar outro, informe o numero
-depois do modo de entrada/saida:
+para moedas. O nivel 1 e o padrao. Para iniciar em outro nivel, informe o
+numero depois do modo de entrada/saida; a progressao segue ate o ultimo:
 
 ```bash
 java -cp bin game.Main terminal 3
@@ -61,15 +61,14 @@ src/main/java/game/
 │   ├── KeyboardInput.java         ← entrada pelo teclado
 │   ├── ButtonInputs.java          ← entrada por botões clicáveis (Swing)
 │   └── VirtualJoystickInput.java  ← entrada por joystick simulado (mouse)
-├── levels/
+├── utils/
 │   └── LevelLoader.java            ← le o TXT e converte os dados da fase
 ├── ui/
 │   ├── IRenderer.java             ← contrato da saída
 │   ├── TerminalRenderer.java      ← desenha no console
 │   └── GUIRenderer.java           ← desenha numa janela gráfica (Swing)
 └── world/
-   ├── Level.java                ← dados iniciais de uma fase
-   ├── Map.java                  ← mapa e paredes
+   ├── Level.java                ← dados da fase, mapa e paredes
    ├── Progress.java             ← pontuação acumulada entre missões
    └── gobjects/
       ├── GameObject.java       ← objeto do jogo
@@ -86,7 +85,7 @@ src/main/java/game/
 `Game` não usa `new` para nada que venha de fora. Tudo chega pelo construtor:
 
 ```java
-public Game(Map map, Player player, Progress progress,
+public Game(Level level, Player player, Progress progress,
             List<Coin> coins,
             IInputs input, IRenderer renderer)
 ```
