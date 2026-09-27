@@ -26,21 +26,21 @@ java -cp bin game.Main
 
 ### Trocando entrada e saída
 
-Esta é a demonstração principal. O **mesmo jogo**, com dois pares diferentes
+Esta é a demonstração principal. O **mesmo jogo**, com três pares diferentes
 de entrada/saída:
 
 ```bash
 java -cp bin game.Main              # teclado + terminal (padrão)
-java -cp bin game.Main gui          # botões clicáveis + janela gráfica (Swing)
+java -cp bin game.Main gui          # botões clicáveis + janela gráfica
+java -cp bin game.Main joystick     # joystick virtual (mouse) + terminal
 ```
 
 Pelo Eclipse: `Run As` → `Run Configurations...` → aba `Arguments` →
-escreva `gui` em *Program arguments*.
+escreva `gui` ou `joystick` em *Program arguments*.
 
-> No modo `gui`, o jogo abre duas janelas: uma com o mapa desenhado
-> (`GUIRenderer`) e outra só com os botões de comando (`ButtonInputs`).
-> Elas não sabem uma da existência da outra — quem as junta é o `Main`.
-> O ponto é que **a classe `Game` não muda em nenhum dos dois casos**.
+> Em cada modo, o jogo abre janelas diferentes (`GUIRenderer`, `ButtonInputs`,
+> `VirtualJoystickInput`), mas não precisa saber disso. Quem junta as peças
+> é só o `Main`. O ponto é que **a classe `Game` não muda em nenhum dos três casos**.
 
 ---
 
@@ -56,7 +56,8 @@ src/main/java/game/
 │   ├── Command.java               ← comandos reconhecidos pelo jogo
 │   ├── IInputs.java               ← contrato das entradas
 │   ├── KeyboardInput.java         ← entrada pelo teclado
-│   └── ButtonInputs.java          ← entrada por botões clicáveis (Swing)
+│   ├── ButtonInputs.java          ← entrada por botões clicáveis (Swing)
+│   └── VirtualJoystickInput.java  ← entrada por joystick simulado (mouse)
 ├── ui/
 │   ├── IRenderer.java             ← contrato da saída
 │   ├── TerminalRenderer.java      ← desenha no console
