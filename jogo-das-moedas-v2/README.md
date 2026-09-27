@@ -3,10 +3,14 @@
 Projeto de apoio da **Aula 08 — Design de Classes: Acoplamento e Coesão**
 Linguagem de Programação II — IMD/UFRN
 
-Este é o **"depois"**. O jogo agora oferece cinco mapas carregados de um
-arquivo TXT. Na versão desacoplada, cada classe mantém uma responsabilidade
-clara: `Grid` representa o cenário, `Level` executa uma fase e `MainGame`
-coordena a partida inteira.
+Este é o **"depois"** — o terceiro e último passo da aula:
+
+- [`v0`](../jogo-das-moedas-v0): uma classe fazendo tudo → **baixa coesão**
+- [`v1`](../jogo-das-moedas-v1): quebrado em classes, mas tudo ligado no concreto → **alto acoplamento**
+- **`v2` (aqui)**: as mesmas ideias, com as dependências invertidas → **baixo acoplamento**
+
+Na versão desacoplada, cada classe mantém uma responsabilidade clara: `Grid` representa o
+cenário, `Level` executa uma fase e `MainGame` coordena a partida inteira.
 
 ---
 
@@ -46,11 +50,27 @@ escreva `keyboard`, `buttons` ou `joystick` em *Program arguments*.
 > `VirtualJoystickInput`), mas a fase não precisa saber disso. Quem junta as peças
 > é só o `MainGame`. O ponto é que **a classe `Level` não muda em nenhum dos três casos**.
 
+> ⚠️ **Honestidade sobre o projeto atual:** hoje um único `InputsEnum` escolhe o par
+> entrada+saída — `RendererFactory` recebe o mesmo enum que `InputsFactory`, então
+> `BUTTONS` e `JOYSTICK` obrigam `GUIRenderer`, e `KEYBOARD` obriga `TerminalRenderer`.
+> As duas escolhas *poderiam* ser independentes, e é isso que o desacoplamento permite —
+> mas o `MainGame` ainda não faz isso. **Separar os dois seletores é um bom exercício:**
+> repare que dá para fazer sem tocar em `Level`, `Player`, `Coin` ou `Grid`.
+
 `InputsFactory` e `RendererFactory` recebem o mesmo `InputsEnum`: `BUTTONS`,
 `JOYSTICK` ou `KEYBOARD`. Sem argumento, `MainGame` usa `KEYBOARD`.
-As duas implementam `IFactory<T>`, cujo contrato define o método `create`.
 
----
+As duas implementam a mesma interface genérica, que tem **dois** parâmetros de tipo —
+`E` é o que se cria, `K` é a chave que decide qual criar:
+
+```java
+public interface IFactory<E, K> {
+    E create(K key);
+}
+```
+
+Ou seja, `InputsFactory implements IFactory<IInputs, InputsEnum>` e
+`RendererFactory implements IFactory<IRenderer, InputsEnum>`.
 
 ---
 
@@ -103,7 +123,8 @@ public Level(Grid grid, Player player, Progress progress,
 objeto `Progress` entre as fases. A fase depende das interfaces `IInputs` e
 `IRenderer`, sem conhecer as implementacoes concretas. `InputsFactory` e
 `RendererFactory` escolhem essas implementacoes com base no modo informado e
-implementam `IFactory<IInputs>` e `IFactory<IRenderer>`, respectivamente.
+implementam `IFactory<IInputs, InputsEnum>` e `IFactory<IRenderer, InputsEnum>`,
+respectivamente.
 
 `Player` representa o avatar na fase; `Progress` guarda a pontuação
 cumulativa e é compartilhado pelas instâncias de `Level` criadas por `MainGame`.
@@ -121,3 +142,34 @@ Duas decisões diferentes no mesmo projeto, e vale entender por quê:
 
 O método `Level.runTurn()` chama `input.waitCommand()` sem nunca perguntar
 que tipo de entrada é aquela. Quem decide como responder é o objeto concreto, em tempo de execução.
+
+---
+
+## O mesmo jogo, classe por classe
+
+A v2 não inventou conceitos novos. Ela pegou o que já existia na v1 e **inverteu as
+dependências**. Abra os dois projetos lado a lado:
+
+| v1 (acoplada) | v2 (desacoplada) | o que mudou |
+|---|---|---|
+| `Game` | `Level` + `MainGame` + `Progress` | as regras foram separadas da montagem e do placar |
+| `Player`, `Coin` | `Player`, `Coin` + `GameObject` | o que era copiado e colado virou herança de estado real |
+| — | `Grid` | o `char[][]` cru virou um objeto imutável que sabe responder `isWall()` |
+| `KeyboardInput` | `KeyboardInput` + **`IInputs`** | surgiu o contrato: agora existe "uma entrada", não "o teclado" |
+| `JoystickInput` | `VirtualJoystickInput`, `ButtonInputs` + `InputsFactory` | de 2 entradas para 3, **sem tocar nas regras** |
+| `ConsoleRenderer` | `TerminalRenderer`, `GUIRenderer` + **`IRenderer`** | mesma história do outro lado |
+| `boolean useJoystick` | `InputsEnum` + factories | o `if/else` espalhado virou uma escolha em um lugar só |
+| `String` cru como comando | `CommandsEnum` | o comando virou um tipo, e carrega o próprio delta de movimento |
+| `LevelLoader` | `utils/LevelLoader` | recebe o `Path` em vez de fixar `"levels.txt"` |
+
+### A comparação que resume a aula
+
+```bash
+grep -n "new \|System.out" src/main/java/game/Level.java
+```
+
+Esse comando não devolve nada. `Level` aplica **todas** as regras do jogo — colisão, coleta,
+pontuação, fim de fase — sem criar um único objeto e sem imprimir uma única linha.
+
+Agora rode o mesmo comando no `Game.java` da v1. Depois conte, nos dois projetos, quantos
+arquivos você precisaria abrir para adicionar uma entrada nova.

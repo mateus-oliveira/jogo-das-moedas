@@ -1,58 +1,148 @@
 @startuml
 
 allowmixing
- title Jogo das Moedas - Versão 1
- left to right direction
- skinparam classAttributeIconSize 0
- skinparam packageStyle rectangle
+title Jogo das Moedas - Versão 1 (acoplada)
+left to right direction
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
 
- package "game" {
-   class MainGame {
-     +main(args: String[]): void
-   }
+package "game" {
 
-   class Game {
-     -levels: List<char[][]>
-     -map: char[][]
-     -levelNumber: int
-     -playerX: int
-     -playerY: int
-     -score: int
-     -remainingCoins: int
-     -running: boolean
-     -scanner: Scanner
-     +Game()
-     +Game(levelNumber: int)
-     +run(): void
-     -loadLevel(): void
-     -waitCommand(command: String): void
-     -draw(): void
-     -clear(): void
-   }
+  class MainGame {
+    +main(args: String[]): void
+  }
 
-   class LevelLoader {
-     +loadAll(): List<char[][]>
-     +load(levelNumber: int): char[][]
-     -parseLevel(rows: List<String>, levelNumber: int): char[][]
-   }
- }
+  class Game {
+    -levels: List<char[][]>
+    -map: char[][]
+    -levelNumber: int
+    -player: Player
+    -coins: List<Coin>
+    -score: int
+    -remainingCoins: int
+    -running: boolean
+    --
+    -useJoystick: boolean
+    -keyboard: KeyboardInput
+    -joystick: JoystickInput
+    -renderer: ConsoleRenderer
+    --
+    +Game()
+    +Game(useJoystick: boolean, levelNumber: int)
+    +run(): void
+    -loadLevel(): void
+    -readCommand(): String
+    -deviceName(): String
+    -waitCommand(command: String): void
+    -collectCoinAtCurrentPosition(): void
+    -clear(): void
+  }
 
- artifact "levels.txt" as LevelsFile
- class "Scanner (JDK)" as Scanner <<external>>
+  class Player {
+    -x: int
+    -y: int
+    +getX(): int
+    +getY(): int
+    +isAt(x: int, y: int): boolean
+    +moveTo(newX: int, newY: int): void
+    +canMoveTo(map: char[][], x: int, y: int): boolean
+  }
 
- MainGame ..* Game : cria
- Game ..* LevelLoader : cria e carrega mapas
- Game --* Scanner : lê comandos
- LevelLoader ..> LevelsFile : lê fases
+  class Coin {
+    -x: int
+    -y: int
+    -value: int
+    -collected: boolean
+    +getX(): int
+    +getY(): int
+    +getValue(): int
+    +isAt(x: int, y: int): boolean
+    +isCollected(): boolean
+    +collect(): void
+  }
 
- note right of Game
-   Game concentra estado, regras,
-   leitura do teclado, renderização
-   e progressão entre fases.
- end note
+  class KeyboardInput {
+    -scanner: Scanner
+    +readCommand(): String
+  }
 
- note bottom of LevelsFile
-   Cada mapa e separado por "---"
- end note
+  class JoystickInput {
+    -{static} DIRECTIONS: String[]
+    +readCommand(): String
+    -pause(): void
+  }
+
+  class ConsoleRenderer {
+    +draw(map: char[][], player: Player, coins: List<Coin>,\n score: int, remainingCoins: int,\n levelNumber: int, deviceName: String): void
+    -symbolAt(map: char[][], player: Player,\n coins: List<Coin>, x: int, y: int): char
+  }
+
+  class LevelLoader {
+    +loadAll(): List<char[][]>
+    -parseLevel(rows: List<String>, levelNumber: int): char[][]
+  }
+}
+
+artifact "levels.txt" as LevelsFile
+class "Scanner (JDK)" as Scanner <<external>>
+class "System.out (JDK)" as SystemOut <<external>>
+class "char[][]" as MapRep <<representacao>>
+
+MainGame ..> Game : cria, decidindo o modo\ncom if/else sobre texto
+
+Game ..> LevelLoader : cria
+Game ..> KeyboardInput : cria classe concreta
+Game ..> JoystickInput : cria classe concreta
+Game ..> ConsoleRenderer : cria classe concreta
+Game --> Player
+Game --> Coin
+Game ..> SystemOut : imprime direto\nem 10 lugares
+
+Player ..> MapRep
+ConsoleRenderer ..> MapRep
+Game ..> MapRep
+LevelLoader ..> MapRep
+
+KeyboardInput --> Scanner
+KeyboardInput ..> SystemOut : imprime o proprio prompt
+JoystickInput ..> SystemOut : imprime o proprio estado
+ConsoleRenderer ..> SystemOut
+LevelLoader ..> LevelsFile : le as fases
+
+note left of Game
+  **TODAS as setas de dependencia saem daqui**
+  e apontam para classes CONCRETAS.
+  Nao existe nenhuma interface no projeto.
+
+  Para trocar entrada ou saida, alguem
+  precisa editar ESTA classe - que e a
+  classe das REGRAS do jogo.
+  ====
+  **As 5 cicatrizes da segunda entrada:**
+  1. construtor      -> qual dispositivo criar
+  2. readCommand()   -> de quem ler
+  3. deviceName()    -> nome para a tela
+  4. waitCommand()   -> os DOIS vocabularios
+  5. (em MainGame)   -> texto para boolean
+
+  Um boolean nao tem terceiro valor.
+  A proxima entrada custa o mesmo de novo.
+end note
+
+note right of MapRep
+  **A representacao vazou.**
+  LevelLoader escolheu char[][] e
+  a decisao chegou a 4 arquivos.
+  Trocar por String[] quebra todos.
+end note
+
+note bottom of Coin
+  **Player e Coin nao tem nada em comum declarado**
+  x, y, construtor, getters e isAt()
+  sao copiados e colados.
+
+  Por isso ConsoleRenderer teve que
+  escrever '@' e '$' na mao.
+end note
 
 @enduml

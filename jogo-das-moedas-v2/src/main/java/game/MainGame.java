@@ -19,9 +19,17 @@ import game.world.gobjects.Player;
 /**
  * Este e o unico lugar do sistema que decide QUAIS pecas concretas serao usadas.
  *
- * Repare: trocar de entrada e saida sao decisoes independentes, combinaveis
- * aqui em uma so linha. A classe Level, o Jogador, o Grid e as Moedas nunca
- * mudam, e Level so enxerga IInputs e IRenderer.
+ * Compare com a versao 1: la, a escolha do dispositivo estava espalhada por
+ * dentro da classe de regras. Aqui ela cabe em duas linhas, e a classe Level,
+ * o Player, o Grid e as Coins nunca mudam - Level so enxerga IInputs e
+ * IRenderer.
+ *
+ * Uma ressalva honesta: hoje um unico InputsEnum escolhe o PAR entrada+saida,
+ * porque RendererFactory recebe o mesmo enum que InputsFactory. Entrada e
+ * saida PODERIAM ser escolhidas separadamente - e o desacoplamento e
+ * justamente o que torna isso possivel - mas este MainGame ainda nao faz
+ * isso. Separar os dois seletores e um exercicio da aula, e repare que ele
+ * nao exige tocar em Level, Player, Coin nem Grid.
  */
 public class MainGame {
 

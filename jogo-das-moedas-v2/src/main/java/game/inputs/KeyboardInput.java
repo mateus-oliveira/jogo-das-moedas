@@ -4,7 +4,13 @@ import java.util.Scanner;
 
 import game.enums.CommandsEnum;
 
-/** Traduz teclas digitadas no console em comandos do jogo. */
+/**
+ * Traduz teclas digitadas no console em comandos do jogo.
+ *
+ * Repare no que esta classe NAO faz: ela nao imprime nada. Quem escreve o
+ * prompt na tela e o TerminalRenderer, porque prompt e SAIDA. Uma classe de
+ * entrada que imprime seria o mesmo vazamento que a versao 1 tem.
+ */
 public class KeyboardInput implements IInputs {
 
     private final Scanner scanner;
@@ -15,7 +21,6 @@ public class KeyboardInput implements IInputs {
 
     @Override
     public CommandsEnum waitCommand() {
-        System.out.print("Comando (w/a/s/d, q para sair): ");
         if (!scanner.hasNextLine())
             return CommandsEnum.EXIT;
         String key = scanner.nextLine().trim().toLowerCase();

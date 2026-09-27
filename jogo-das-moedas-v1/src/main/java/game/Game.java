@@ -1,23 +1,32 @@
 package game;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 /**
- * VERSAO 1 - ALTO ACOPLAMENTO / BAIXA COESAO
+ * VERSAO 1 - ALTO ACOPLAMENTO
  *
- * Esta classe faz TUDO sozinha:
- *   1. guarda o mapa;
- *   2. guarda a posicao e a pontuacao do jogador;
- *   3. cria o Scanner e le o teclado;
- *   4. traduz a tecla digitada em movimento;
- *   5. verifica colisao com parede;
- *   6. controla a coleta de moedas;
- *   7. desenha o mapa na tela;
- *   8. controla o laco principal do jogo.
+ * Esta versao e o degrau do meio da aula. Comparada com a v0, ela parece um
+ * progresso: o jogador virou Player, a moeda virou Coin, a leitura do teclado
+ * virou KeyboardInput, o desenho virou ConsoleRenderer. Cinco classes onde
+ * antes havia uma.
  *
- * Sao oito responsabilidades numa classe so. Repare que nao existe
- * NENHUM getter: nada aqui pode ser observado de fora.
+ * E ainda assim quase nada melhorou. Porque o que foi feito foi QUEBRAR em
+ * classes, nao INVERTER as dependencias. Game continua decidindo tudo:
+ *
+ *   - decide que existe teclado (new KeyboardInput)
+ *   - decide que existe joystick (new JoystickInput)
+ *   - decide que a saida e o console (new ConsoleRenderer, e impressao solta)
+ *   - decide como cada dispositivo fala (o switch de waitCommand)
+ *
+ * A prova esta no campo useJoystick, logo abaixo. Ele existe porque o jogo
+ * ganhou uma SEGUNDA entrada, e a unica forma de encaixa-la sem redesenhar
+ * nada foi espalhar "if (useJoystick)" pela classe. Sao QUATRO pontos, todos
+ * marcados com o comentario CICATRIZ, todos dentro da classe de REGRAS - que
+ * nao tem nada a ver com dispositivo de entrada.
+ *
+ * A pergunta da aula nao e "isso funciona?". Funciona. A pergunta e: quanto
+ * custa a TERCEIRA entrada?
  */
 public class Game {
 
@@ -25,41 +34,88 @@ public class Game {
     private char[][] map;
     private int levelNumber;
 
-    private int playerX;
-    private int playerY;
+    private Player player;
+    private List<Coin> coins;
+
     private int score = 0;
+
+    /**
+     * Estado redundante: o tamanho de coins e a quantidade de moedas nao
+     * coletadas ja dizem isso. Duas fontes de verdade para o mesmo fato,
+     * e duas chances de esquecer de atualizar uma delas.
+     */
     private int remainingCoins;
+
     private boolean running = true;
 
-    private final Scanner scanner = new Scanner(System.in);
+    /**
+     * ACOPLAMENTO: a classe Game decide sozinha de onde vem a entrada.
+     * Para trocar de dispositivo, alguem precisa editar ESTA classe.
+     *
+     * E um boolean, e um boolean so sabe dizer "sim" ou "nao". Com dois
+     * dispositivos ele da conta. Com tres, nao existe terceiro valor.
+     */
+    private final boolean useJoystick;
 
-    public Game() { this(1); }
-    public Game(int levelNumber) {
+    /** Um destes dois campos e SEMPRE null. O compilador nao reclama. */
+    private KeyboardInput keyboard;
+    private JoystickInput joystick;
+
+    /** ACOPLAMENTO: a classe das regras escolhendo a tecnologia de saida. */
+    private final ConsoleRenderer renderer = new ConsoleRenderer();
+
+    public Game() { this(false, 1); }
+
+    public Game(boolean useJoystick, int levelNumber) {
         this.levels = new LevelLoader().loadAll();
         if (levelNumber < 1 || levelNumber > levels.size()) {
             throw new IllegalArgumentException(
                 "Level must be between 1 and " + levels.size() + ".");
         }
         this.levelNumber = levelNumber;
+        this.useJoystick = useJoystick;
+
+        // ===== CICATRIZ 1 de 4: escolher e CRIAR o dispositivo =====
+        if (useJoystick) {
+            this.joystick = new JoystickInput();
+        } else {
+            this.keyboard = new KeyboardInput();
+        }
+
         loadLevel();
     }
 
+    /**
+     * ACOPLAMENTO: este metodo apaga '@' e '$' de dentro de map - e map e o
+     * MESMO array que esta guardado na lista levels, nao uma copia. O mapa
+     * original foi destruido ao ser carregado.
+     *
+     * Na pratica o jogo nunca volta para uma fase ja jogada, entao o bug nao
+     * aparece. Mas ele esta aqui: reinicie a fase 1 e voce vai encontrar um
+     * mapa sem jogador e sem moedas. Isso e o preco de passar estado mutavel
+     * cru de uma classe para outra.
+     */
     private void loadLevel() {
         map = levels.get(levelNumber - 1);
-        playerX = 0;
-        playerY = 0;
-        remainingCoins = 0;
+        coins = new ArrayList<>();
+        int startX = 0;
+        int startY = 0;
+
         for (int row = 0; row < map.length; row++) {
             for (int column = 0; column < map[row].length; column++) {
                 if (map[row][column] == '@') {
-                    playerX = column;
-                    playerY = row;
+                    startX = column;
+                    startY = row;
                     map[row][column] = ' ';
                 } else if (map[row][column] == '$') {
-                    remainingCoins++;
+                    coins.add(new Coin(column, row, 10));
+                    map[row][column] = ' ';
                 }
             }
         }
+
+        player = new Player(startX, startY);
+        remainingCoins = coins.size();
     }
 
     public void run() {
@@ -67,15 +123,8 @@ public class Game {
         while (running) {
             while (running && remainingCoins > 0) {
                 clear();
-                draw();
-                System.out.print("Comando (w/a/s/d, q para sair): ");
-
-                if (!scanner.hasNextLine()) {
-                    running = false;
-                    break;
-                }
-                String command = scanner.nextLine().trim().toLowerCase();
-                waitCommand(command);
+                renderer.draw(map, player, coins, score, remainingCoins, levelNumber, deviceName());
+                waitCommand(readCommand());
             }
 
             if (!running)
@@ -93,21 +142,44 @@ public class Game {
         System.out.println("Final score: " + score);
     }
 
+    // ===== CICATRIZ 2 de 4: rotear a leitura para o dispositivo certo =====
+    private String readCommand() {
+        if (useJoystick)
+            return joystick.readCommand();
+        return keyboard.readCommand();
+    }
+
+    // ===== CICATRIZ 3 de 4: descobrir o nome do dispositivo para a tela =====
+    private String deviceName() {
+        return useJoystick ? "Joystick simulado" : "Teclado";
+    }
+
+    /** ACOPLAMENTO: codigo ANSI de terminal escrito dentro da classe de regras. */
     private void clear() {
         System.out.print("\033[H\033[2J");
         System.out.flush();
     }
 
+    /**
+     * ===== CICATRIZ 4 de 4: entender o que cada dispositivo fala =====
+     *
+     * Esta e a cicatriz mais cara das quatro. O teclado manda "w", o joystick
+     * manda "up", e as duas coisas querem dizer "para cima".
+     *
+     * Conte os literais de texto abaixo: sao DEZ, para cinco conceitos. Cada
+     * dispositivo novo com vocabulario proprio soma mais cinco. E tudo isso
+     * mora na classe das REGRAS, que nao deveria saber o que e uma tecla.
+     */
     private void waitCommand(String command) {
-        int destinationX = playerX;
-        int destinationY = playerY;
+        int destinationX = player.getX();
+        int destinationY = player.getY();
 
         switch (command) {
-            case "w" -> destinationY -= 1;
-            case "s" -> destinationY += 1;
-            case "a" -> destinationX -= 1;
-            case "d" -> destinationX += 1;
-            case "q" -> {
+            case "w", "up" -> destinationY -= 1;
+            case "s", "down" -> destinationY += 1;
+            case "a", "left" -> destinationX -= 1;
+            case "d", "right" -> destinationX += 1;
+            case "q", "quit" -> {
                 running = false;
                 return;
             }
@@ -117,38 +189,26 @@ public class Game {
             }
         }
 
-        if (map[destinationY][destinationX] == '#') {
+        if (!player.canMoveTo(map, destinationX, destinationY)) {
             System.out.println("Wall! You cannot go there.");
             return;
         }
 
-        playerX = destinationX;
-        playerY = destinationY;
-
-        if (map[playerY][playerX] == '$') {
-            map[playerY][playerX] = ' ';
-            score += 10;
-            remainingCoins -= 1;
-            System.out.println("Coin collected! Score: " + score);
-        }
+        player.moveTo(destinationX, destinationY);
+        collectCoinAtCurrentPosition();
 
         if (remainingCoins == 0)
             System.out.println("You collected all coins!");
     }
 
-    // Desenhar tambem esta aqui dentro, preso ao System.out.
-    private void draw() {
-        System.out.println();
-        for (int row = 0; row < map.length; row++) {
-            StringBuilder text = new StringBuilder();
-            for (int column = 0; column < map[row].length; column++) {
-                if (row == playerY && column == playerX)
-                    text.append('@');
-                else
-                    text.append(map[row][column]);
+    private void collectCoinAtCurrentPosition() {
+        for (Coin coin : coins) {
+            if (!coin.isCollected() && coin.isAt(player.getX(), player.getY())) {
+                coin.collect();
+                score += coin.getValue();
+                remainingCoins -= 1;
+                System.out.println("Coin collected! Score: " + score);
             }
-            System.out.println(text.toString());
         }
-        System.out.println("Score: " + score + " | Remaining coins: " + remainingCoins);
     }
 }
