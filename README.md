@@ -24,22 +24,23 @@ javac -d bin $(find src/main/java -name "*.java")
 java -cp bin game.Main
 ```
 
-### Trocando o dispositivo de entrada
+### Trocando entrada e saída
 
-Esta é a demonstração principal. O **mesmo jogo**, com três controles diferentes:
+Esta é a demonstração principal. O **mesmo jogo**, com dois pares diferentes
+de entrada/saída:
 
 ```bash
-java -cp bin game.Main              # teclado (padrão)
-java -cp bin game.Main joystick     # joystick simulado
-java -cp bin game.Main mobile       # gestos de tela simulados
+java -cp bin game.Main              # teclado + terminal (padrão)
+java -cp bin game.Main gui          # botões clicáveis + janela gráfica (Swing)
 ```
 
 Pelo Eclipse: `Run As` → `Run Configurations...` → aba `Arguments` →
-escreva `joystick` ou `mobile` em *Program arguments*.
+escreva `gui` em *Program arguments*.
 
-> As versões de joystick e mobile leem uma sequência **gravada** de comandos, só para a aula.
-> Num sistema real, esses valores viriam do driver do controle ou do sistema operacional —
-> mas o ponto é que **a classe `Game` não muda em nenhum dos três casos**.
+> No modo `gui`, o jogo abre duas janelas: uma com o mapa desenhado
+> (`GUIRenderer`) e outra só com os botões de comando (`ButtonInputs`).
+> Elas não sabem uma da existência da outra — quem as junta é o `Main`.
+> O ponto é que **a classe `Game` não muda em nenhum dos dois casos**.
 
 ---
 
@@ -55,11 +56,11 @@ src/main/java/game/
 │   ├── Command.java               ← comandos reconhecidos pelo jogo
 │   ├── IInputs.java               ← contrato das entradas
 │   ├── KeyboardInput.java         ← entrada pelo teclado
-│   ├── JoystickInput.java         ← simulação da entrada por eixos
-│   └── MobileInput.java           ← simulação de gestos de tela
+│   └── ButtonInputs.java          ← entrada por botões clicáveis (Swing)
 ├── ui/
 │   ├── IRenderer.java             ← contrato da saída
-│   └── TerminalRenderer.java      ← desenha no console
+│   ├── TerminalRenderer.java      ← desenha no console
+│   └── GUIRenderer.java           ← desenha numa janela gráfica (Swing)
 └── world/
    ├── Map.java                   ← mapa e paredes
    └── gobjects/
@@ -98,8 +99,8 @@ Duas decisões diferentes no mesmo projeto, e vale entender por quê:
 O método `Game.runTurn()` chama `input.waitCommand()` sem nunca perguntar
 que tipo de entrada é aquela. Quem decide como responder é o objeto concreto, em tempo de execução.
 
-O teste `InputPolymorphismTest` prova isso: o mesmo percurso feito por joystick e por
-gestos de tela produz **exatamente a mesma pontuação**.
+O teste `InputPolymorphismTest` prova isso: o mesmo percurso feito pelo teclado e por
+botões clicáveis produz **exatamente a mesma pontuação**.
 
 ---
 
