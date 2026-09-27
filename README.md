@@ -5,7 +5,8 @@ Linguagem de Programação II — IMD/UFRN
 
 Este é o **"depois"**. O jogo agora oferece cinco mapas carregados de um
 arquivo TXT. Na versão desacoplada, cada classe mantém uma responsabilidade
-clara: o carregador interpreta os dados e o `Main` monta os objetos usados por `Game`.
+clara: `Grid` representa o cenário, `Level` executa uma fase e `MainGame`
+coordena a partida inteira.
 
 ---
 
@@ -14,7 +15,7 @@ clara: o carregador interpreta os dados e o `Main` monta os objetos usados por `
 ```bash
 cd jogo-das-moedas-v2
 javac -d bin $(find src/main/java -name "*.java")
-java -cp bin game.Main
+java -cp bin game.MainGame
 ```
 
 Os cinco mapas ficam em `levels.txt`, na raiz do projeto, separados por uma
@@ -23,8 +24,8 @@ para moedas. O nivel 1 e o padrao. Para iniciar em outro nivel, informe o
 numero depois do modo de entrada/saida; a progressao segue ate o ultimo:
 
 ```bash
-java -cp bin game.Main terminal 3
-java -cp bin game.Main gui 5
+java -cp bin game.MainGame terminal 3
+java -cp bin game.MainGame gui 5
 ```
 
 ### Trocando entrada e saída
@@ -33,17 +34,17 @@ Esta é a demonstração principal. O **mesmo jogo**, com três pares diferentes
 de entrada/saída:
 
 ```bash
-java -cp bin game.Main              # teclado + terminal, nivel 1
-java -cp bin game.Main gui          # botoes clicaveis + janela grafica
-java -cp bin game.Main joystick     # joystick virtual (mouse) + janela grafica
+java -cp bin game.MainGame              # teclado + terminal, nivel 1
+java -cp bin game.MainGame gui          # botoes clicaveis + janela grafica
+java -cp bin game.MainGame joystick     # joystick virtual (mouse) + janela grafica
 ```
 
 Pelo Eclipse: `Run As` → `Run Configurations...` → aba `Arguments` →
 escreva `gui` ou `joystick` em *Program arguments*.
 
 > Em cada modo, o jogo abre janelas diferentes (`GUIRenderer`, `ButtonInputs`,
-> `VirtualJoystickInput`), mas não precisa saber disso. Quem junta as peças
-> é só o `Main`. O ponto é que **a classe `Game` não muda em nenhum dos três casos**.
+> `VirtualJoystickInput`), mas a fase não precisa saber disso. Quem junta as peças
+> é só o `MainGame`. O ponto é que **a classe `Level` não muda em nenhum dos três casos**.
 
 ---
 
@@ -53,8 +54,8 @@ escreva `gui` ou `joystick` em *Program arguments*.
 
 ```
 src/main/java/game/
-├── Main.java                      ← escolhe as implementações concretas
-├── Game.java                      ← regras e fluxo do jogo
+├── MainGame.java                  ← coordena fases e escolhe implementacoes
+├── Level.java                     ← regras e fluxo de uma fase
 ├── inputs/
 │   ├── Command.java               ← comandos reconhecidos pelo jogo
 │   ├── IInputs.java               ← contrato das entradas
@@ -68,7 +69,7 @@ src/main/java/game/
 │   ├── TerminalRenderer.java      ← desenha no console
 │   └── GUIRenderer.java           ← desenha numa janela gráfica (Swing)
 └── world/
-   ├── Level.java                ← dados da fase, mapa e paredes
+   ├── Grid.java                  ← dados do cenario, dimensoes e paredes
    ├── Progress.java             ← pontuação acumulada entre missões
    └── gobjects/
       ├── GameObject.java       ← objeto do jogo
@@ -82,19 +83,19 @@ src/main/java/game/
 
 ### 1. Injeção de dependência
 
-`Game` não usa `new` para nada que venha de fora. Tudo chega pelo construtor:
+`Level` não usa `new` para nada que venha de fora. Tudo chega pelo construtor:
 
 ```java
-public Game(Level level, Player player, Progress progress,
-            List<Coin> coins,
-            IInputs input, IRenderer renderer)
+public Level(Grid grid, Player player, Progress progress,
+             List<Coin> coins, IInputs input, IRenderer renderer)
 ```
 
-Por isso o teste consegue entregar um controle de mentira, e o `Main` consegue
-entregar um joystick, sem que `Game` saiba da diferença.
+`MainGame` carrega cada `Grid`, monta o `Level` correspondente e preserva o
+objeto `Progress` entre as fases. A fase depende das interfaces `IInputs` e
+`IRenderer`, sem conhecer as implementacoes concretas.
 
-`Player` representa o avatar na missão; `Progress` guarda a pontuação
-cumulativa e pode ser compartilhado por várias instâncias de `Game`.
+`Player` representa o avatar na fase; `Progress` guarda a pontuação
+cumulativa e é compartilhado pelas instâncias de `Level` criadas por `MainGame`.
 
 ### 2. Interface para contrato, classe abstrata para reúso
 
@@ -107,5 +108,5 @@ Duas decisões diferentes no mesmo projeto, e vale entender por quê:
 
 ### 3. Polimorfismo
 
-O método `Game.runTurn()` chama `input.waitCommand()` sem nunca perguntar
+O método `Level.runTurn()` chama `input.waitCommand()` sem nunca perguntar
 que tipo de entrada é aquela. Quem decide como responder é o objeto concreto, em tempo de execução.

@@ -3,6 +3,7 @@ package game.inputs;
 import java.awt.GridLayout;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -16,7 +17,7 @@ import javax.swing.SwingUtilities;
  * bloqueante e o ponto de encontro seguro entre as duas threads: o clique
  * poe um comando na fila, e waitCommand() so acorda quando ha um la dentro.
  *
- * Repare que esta classe nao conhece o GUIRenderer, nem o Game. Ela so
+ * Repare que esta classe nao conhece o GUIRenderer, nem o Level. Ela so
  * cumpre o contrato IInputs - exatamente como o KeyboardInput.
  */
 public class ButtonInputs implements IInputs {

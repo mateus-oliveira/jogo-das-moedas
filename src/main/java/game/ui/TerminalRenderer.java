@@ -2,7 +2,7 @@ package game.ui;
 
 import java.util.List;
 
-import game.world.Level;
+import game.world.Grid;
 import game.world.Progress;
 import game.world.gobjects.Coin;
 import game.world.gobjects.Player;
@@ -17,19 +17,19 @@ public class TerminalRenderer implements IRenderer {
     }
 
     @Override
-    public void draw(Level level, Player player, Progress progress, List<Coin> coins) {
+    public void draw(Grid grid, Player player, Progress progress, List<Coin> coins) {
         System.out.println();
-        for (int y = 0; y < level.getHeight(); y++) {
+        for (int y = 0; y < grid.getHeight(); y++) {
             StringBuilder line = new StringBuilder();
-            for (int x = 0; x < level.getWidth(); x++) {
-                line.append(symbolAt(level, player, coins, x, y));
+            for (int x = 0; x < grid.getWidth(); x++) {
+                line.append(symbolAt(grid, player, coins, x, y));
             }
             System.out.println(line.toString());
         }
         System.out.println("Score: " + progress.getScore());
     }
 
-    private char symbolAt(Level level, Player player, List<Coin> coins, int x, int y) {
+    private char symbolAt(Grid grid, Player player, List<Coin> coins, int x, int y) {
         if (player.isAt(x, y))
             return player.getSymbol();
         for (Coin coin : coins) {
@@ -37,7 +37,7 @@ public class TerminalRenderer implements IRenderer {
                 return coin.getSymbol();
             }
         }
-        if (level.isWall(x, y))
+        if (grid.isWall(x, y))
             return '#';
         return ' ';
     }

@@ -12,7 +12,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-import game.world.Level;
+import game.world.Grid;
 import game.world.Progress;
 import game.world.gobjects.Coin;
 import game.world.gobjects.Player;
@@ -20,13 +20,13 @@ import game.world.gobjects.Player;
 /**
  * Desenha o jogo numa janela grafica (Swing), em vez do console.
  *
- * Repare: implementa o mesmo contrato de sempre, IRenderer. A classe Game
+ * Repare: implementa o mesmo contrato de sempre, IRenderer. A classe Level
  * continua chamando clear(), showMessage() e draw() sem fazer ideia de que,
  * desta vez, existe uma janela do outro lado.
  *
  * Os metodos publicos so agendam trabalho na Event Dispatch Thread (via
  * invokeLater), porque componentes Swing so devem ser tocados por ela. Quem
- * chama estes metodos (a classe Game) continua rodando na thread principal,
+ * chama estes metodos (a classe Level) continua rodando na thread principal,
  * sem nunca precisar saber disso.
  */
 public class GUIRenderer extends JPanel implements IRenderer {
@@ -35,7 +35,7 @@ public class GUIRenderer extends JPanel implements IRenderer {
 
     private final JFrame frame;
     private final JLabel messageLabel;
-    private Level level;
+    private Grid grid;
     private Player player;
     private Progress progress;
     private List<Coin> coins;
@@ -70,13 +70,13 @@ public class GUIRenderer extends JPanel implements IRenderer {
     }
 
     @Override
-    public void draw(Level level, Player player, Progress progress, List<Coin> coins) {
+    public void draw(Grid grid, Player player, Progress progress, List<Coin> coins) {
         SwingUtilities.invokeLater(() -> {
-            this.level = level;
+            this.grid = grid;
             this.player = player;
             this.progress = progress;
             this.coins = coins;
-            setPreferredSize(new Dimension(level.getWidth() * CELL_SIZE, level.getHeight() * CELL_SIZE + 24));
+            setPreferredSize(new Dimension(grid.getWidth() * CELL_SIZE, grid.getHeight() * CELL_SIZE + 24));
             revalidate();
             repaint();
         });
@@ -85,13 +85,13 @@ public class GUIRenderer extends JPanel implements IRenderer {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        if (level == null)
+        if (grid == null)
             return;
 
         g.setColor(Color.DARK_GRAY);
-        for (int y = 0; y < level.getHeight(); y++) {
-            for (int x = 0; x < level.getWidth(); x++) {
-                if (level.isWall(x, y))
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) {
+                if (grid.isWall(x, y))
                     g.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
             }
         }
@@ -106,6 +106,6 @@ public class GUIRenderer extends JPanel implements IRenderer {
         g.fillRect(player.getX() * CELL_SIZE + 4, player.getY() * CELL_SIZE + 4, CELL_SIZE - 8, CELL_SIZE - 8);
 
         g.setColor(Color.WHITE);
-        g.drawString("Score: " + progress.getScore(), 4, level.getHeight() * CELL_SIZE + 18);
+        g.drawString("Score: " + progress.getScore(), 4, grid.getHeight() * CELL_SIZE + 18);
     }
 }

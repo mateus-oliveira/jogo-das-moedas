@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -16,9 +17,9 @@ import javax.swing.SwingUtilities;
  * ao centro é traduzida em comandos (cima/baixo/esquerda/direita). Quando
  * o mouse fica na "zona morta" (perto do centro), retorna NONE.
  *
- * Repare que, para o Game, nao importa: recebia Keyboard, recebia Joystick
+ * Repare que, para o Level, nao importa: recebia Keyboard, recebia Joystick
  * simulado com ThreadLocalRandom, agora recebe joystick simulado com mouse.
- * Uma única chamada em Main.java escolhe qual.
+ * Uma única chamada em MainGame.java escolhe qual.
  */
 public class VirtualJoystickInput implements IInputs {
 

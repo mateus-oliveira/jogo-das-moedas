@@ -5,7 +5,7 @@ import java.util.List;
 import game.inputs.Command;
 import game.inputs.IInputs;
 import game.ui.IRenderer;
-import game.world.Level;
+import game.world.Grid;
 import game.world.Progress;
 import game.world.gobjects.Coin;
 import game.world.gobjects.Player;
@@ -19,11 +19,11 @@ import game.world.gobjects.Player;
  * Tudo que nao e regra chega pronto pelo construtor - isso se chama
  * INJECAO DE DEPENDENCIA. A classe nao cria nada com "new": ela recebe.
  *
- * Consequencia pratica: Game nunca precisou saber que existe teclado.
+ * Consequencia pratica: Level nunca precisou saber que existe teclado.
  */
-public class Game {
+public class Level {
 
-    private final Level level;
+    private final Grid grid;
     private final Player player;
     private final Progress progress;
     private final List<Coin> coins;
@@ -32,15 +32,15 @@ public class Game {
 
     private boolean running = true;
 
-    public Game(
-        Level level,
+    public Level(
+        Grid grid,
         Player player,
         Progress progress,
         List<Coin> coins,
         IInputs input,
         IRenderer renderer
     ) {
-        this.level = level;
+        this.grid = grid;
         this.player = player;
         this.progress = progress;
         this.coins = coins;
@@ -51,7 +51,7 @@ public class Game {
     public boolean run() {
         renderer.clear();
         renderer.showMessage("=== Collect the coins ($) - control: " + input.getDeviceName() + " ===");
-        renderer.draw(level, player, progress, coins);
+        renderer.draw(grid, player, progress, coins);
 
         while (running) {
             runTurn();
@@ -78,14 +78,14 @@ public class Game {
         int destinationX = player.getX() + command.getDeltaX();
         int destinationY = player.getY() + command.getDeltaY();
 
-        if (level.isWall(destinationX, destinationY)) {
+        if (grid.isWall(destinationX, destinationY)) {
             renderer.showMessage("Wall! You cannot go there.");
             return;
         }
 
         player.moveTo(destinationX, destinationY);
         collectCoinAtCurrentPosition();
-        renderer.draw(level, player, progress, coins);
+        renderer.draw(grid, player, progress, coins);
 
         if (allCoinsCollected()) {
             renderer.showMessage("You collected all coins!");

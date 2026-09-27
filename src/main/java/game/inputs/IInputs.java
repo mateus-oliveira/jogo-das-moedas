@@ -4,7 +4,7 @@ package game.inputs;
  * O CONTRATO DA ENTRADA.
  *
  * Esta interface e a resposta para a pergunta: "e se amanha o jogo tiver
- * joystick ou controle por toque?". A classe Game depende DESTE contrato,
+ * joystick ou controle por toque?". A classe Level depende DESTE contrato,
  * nunca de um dispositivo especifico.
  *
  * Por que interface e nao classe abstrata? Porque nao existe nenhum codigo

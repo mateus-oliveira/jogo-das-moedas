@@ -3,7 +3,7 @@ package game.world;
 import java.util.List;
 
 /** Dados iniciais de uma fase, sem regras de carregamento ou execucao. */
-public class Level {
+public class Grid {
 
     private static final char WALL = '#';
 
@@ -12,7 +12,7 @@ public class Level {
     private final int playerY;
     private final List<int[]> coinPositions;
 
-    public Level(String[] rows, int playerX, int playerY, List<int[]> coinPositions) {
+    public Grid(String[] rows, int playerX, int playerY, List<int[]> coinPositions) {
         this.rows = rows.clone();
         this.playerX = playerX;
         this.playerY = playerY;
@@ -41,12 +41,10 @@ public class Level {
 
     /** Fora do nivel tambem conta como parede. */
     public boolean isWall(int x, int y) {
-        if (y < 0 || y >= getHeight()) {
+        if (y < 0 || y >= getHeight())
             return true;
-        }
-        if (x < 0 || x >= rows[y].length()) {
+        if (x < 0 || x >= rows[y].length())
             return true;
-        }
         return rows[y].charAt(x) == WALL;
     }
 }

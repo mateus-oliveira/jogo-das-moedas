@@ -2,7 +2,7 @@ package game.ui;
 
 import java.util.List;
 
-import game.world.Level;
+import game.world.Grid;
 import game.world.Progress;
 import game.world.gobjects.Coin;
 import game.world.gobjects.Player;
@@ -20,6 +20,6 @@ public interface IRenderer {
 
     void showMessage(String message);
 
-    void draw(Level level, Player player, Progress progress, List<Coin> coins);
+    void draw(Grid grid, Player player, Progress progress, List<Coin> coins);
 
 }
