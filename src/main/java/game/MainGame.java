@@ -5,14 +5,11 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import game.inputs.ButtonInputs;
 import game.inputs.IInputs;
-import game.inputs.KeyboardInput;
-import game.inputs.VirtualJoystickInput;
-import game.ui.GUIRenderer;
 import game.ui.IRenderer;
-import game.ui.TerminalRenderer;
+import game.utils.InputsFactory;
 import game.utils.LevelLoader;
+import game.utils.RendererFactory;
 import game.world.Grid;
 import game.world.Progress;
 import game.world.gobjects.Coin;
@@ -35,25 +32,11 @@ public class MainGame {
             throw new IllegalArgumentException("Level must be between 1 and " + grids.size() + ".");
         }
 
-        IInputs input;
-        IRenderer renderer;
-
-        switch (mode) {
-            case "gui" -> {
-                input = new ButtonInputs();
-                renderer = new GUIRenderer();
-            }
-            case "joystick" -> {
-                input = new VirtualJoystickInput();
-                renderer = new GUIRenderer();
-            }
-            default -> {
-                input = new KeyboardInput();
-                renderer = new TerminalRenderer();
-            }
-        }
+        IInputs input = InputsFactory.create(mode);
+        IRenderer renderer = RendererFactory.create(mode);
 
         Progress progress = new Progress();
+
         for (int index = levelNumber - 1; index < grids.size(); index++) {
             Grid grid = grids.get(index);
             Player player = new Player(grid.getPlayerX(), grid.getPlayerY());

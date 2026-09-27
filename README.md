@@ -63,7 +63,9 @@ src/main/java/game/
 │   ├── ButtonInputs.java          ← entrada por botões clicáveis (Swing)
 │   └── VirtualJoystickInput.java  ← entrada por joystick simulado (mouse)
 ├── utils/
-│   └── LevelLoader.java            ← le o TXT e converte os dados da fase
+│   ├── LevelLoader.java            ← le o TXT e converte os dados da fase
+│   ├── InputsFactory.java          ← cria a entrada conforme o modo
+│   └── RendererFactory.java       ← cria a saida conforme o modo
 ├── ui/
 │   ├── IRenderer.java             ← contrato da saída
 │   ├── TerminalRenderer.java      ← desenha no console
@@ -92,7 +94,8 @@ public Level(Grid grid, Player player, Progress progress,
 
 `MainGame` carrega cada `Grid`, monta o `Level` correspondente e preserva o
 objeto `Progress` entre as fases. A fase depende das interfaces `IInputs` e
-`IRenderer`, sem conhecer as implementacoes concretas.
+`IRenderer`, sem conhecer as implementacoes concretas. `InputsFactory` e
+`RendererFactory` escolhem essas implementacoes com base no modo informado.
 
 `Player` representa o avatar na fase; `Progress` guarda a pontuação
 cumulativa e é compartilhado pelas instâncias de `Level` criadas por `MainGame`.

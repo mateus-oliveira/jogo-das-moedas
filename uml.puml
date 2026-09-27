@@ -30,6 +30,14 @@ allowmixing
       +load(file: Path, levelNumber: int): Grid
       -parseLevel(rows: List<String>, levelNumber: int): Grid
      }
+
+     class InputsFactory {
+       +create(mode: String): IInputs
+     }
+
+     class RendererFactory {
+       +create(mode: String): IRenderer
+     }
    }
 
    package "world" {
@@ -162,13 +170,20 @@ allowmixing
 
  MainGame ..> LevelLoader : carrega todas as fases
  MainGame ..> Level : cria e executa cada fase
- MainGame ..> IInputs : seleciona implementacao
- MainGame ..> IRenderer : seleciona implementacao
+ MainGame ..> InputsFactory : cria entrada
+ MainGame ..> RendererFactory : cria saida
  MainGame ..> Progress : cria uma vez e compartilha
  MainGame ..> Player : cria por fase
  MainGame ..> Coin : cria a partir das coordenadas
  LevelLoader ..> LevelsFile : lê fases
  LevelLoader ..> Grid : monta
+ InputsFactory ..> IInputs : retorna
+ InputsFactory ..> KeyboardInput : cria
+ InputsFactory ..> ButtonInputs : cria
+ InputsFactory ..> VirtualJoystickInput : cria
+ RendererFactory ..> IRenderer : retorna
+ RendererFactory ..> TerminalRenderer : cria
+ RendererFactory ..> GUIRenderer : cria
 
  Level --> Grid : conteudo da fase
  Level --> Player : jogador
