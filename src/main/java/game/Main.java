@@ -8,6 +8,7 @@ import game.ui.GUIRenderer;
 import game.ui.IRenderer;
 import game.ui.TerminalRenderer;
 import game.world.Map;
+import game.world.Progress;
 import game.world.gobjects.Coin;
 import game.world.gobjects.Player;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ public class Main {
     public static void main(String[] args) {
         Map map = Map.standard();
         Player player = new Player(1, 1);
+        Progress progress = new Progress();
 
         List<Coin> coins = new ArrayList<>();
         coins.add(new Coin(6, 2, 10));
@@ -50,7 +52,7 @@ public class Main {
             }
         }
 
-        Game game = new Game(map, player, coins, input, renderer);
+        Game game = new Game(map, player, progress, coins, input, renderer);
         game.run();
     }
 }

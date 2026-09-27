@@ -1,6 +1,7 @@
 package game.ui;
 
 import game.world.Map;
+import game.world.Progress;
 import game.world.gobjects.Coin;
 import game.world.gobjects.Player;
 import java.awt.BorderLayout;
@@ -34,6 +35,7 @@ public class GUIRenderer extends JPanel implements IRenderer {
     private final JLabel messageLabel;
     private Map map;
     private Player player;
+    private Progress progress;
     private List<Coin> coins;
 
     public GUIRenderer() {
@@ -66,10 +68,11 @@ public class GUIRenderer extends JPanel implements IRenderer {
     }
 
     @Override
-    public void draw(Map map, Player player, List<Coin> coins) {
+    public void draw(Map map, Player player, Progress progress, List<Coin> coins) {
         SwingUtilities.invokeLater(() -> {
             this.map = map;
             this.player = player;
+            this.progress = progress;
             this.coins = coins;
             setPreferredSize(new Dimension(map.getWidth() * CELL_SIZE, map.getHeight() * CELL_SIZE + 24));
             revalidate();
@@ -101,6 +104,6 @@ public class GUIRenderer extends JPanel implements IRenderer {
         g.fillRect(player.getX() * CELL_SIZE + 4, player.getY() * CELL_SIZE + 4, CELL_SIZE - 8, CELL_SIZE - 8);
 
         g.setColor(Color.WHITE);
-        g.drawString("Score: " + player.getScore(), 4, map.getHeight() * CELL_SIZE + 18);
+        g.drawString("Score: " + progress.getScore(), 4, map.getHeight() * CELL_SIZE + 18);
     }
 }

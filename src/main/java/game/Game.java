@@ -4,6 +4,7 @@ import game.inputs.Command;
 import game.inputs.IInputs;
 import game.ui.IRenderer;
 import game.world.Map;
+import game.world.Progress;
 import game.world.gobjects.Coin;
 import game.world.gobjects.Player;
 import java.util.List;
@@ -23,6 +24,7 @@ public class Game {
 
     private final Map map;
     private final Player player;
+    private final Progress progress;
     private final List<Coin> coins;
     private final IInputs input;
     private final IRenderer renderer;
@@ -32,12 +34,14 @@ public class Game {
     public Game(
         Map map,
         Player player,
+        Progress progress,
         List<Coin> coins,
         IInputs input,
         IRenderer renderer
     ) {
         this.map = map;
         this.player = player;
+        this.progress = progress;
         this.coins = coins;
         this.input = input;
         this.renderer = renderer;
@@ -46,12 +50,12 @@ public class Game {
     public void run() {
         renderer.clear();
         renderer.showMessage("=== Collect the coins ($) - control: " + input.getDeviceName() + " ===");
-        renderer.draw(map, player, coins);
+        renderer.draw(map, player, progress, coins);
 
         while (running) {
             runTurn();
         }
-        renderer.showMessage("Final score: " + player.getScore());
+        renderer.showMessage("Final score: " + progress.getScore());
     }
 
     /**
@@ -80,7 +84,7 @@ public class Game {
 
         player.moveTo(destinationX, destinationY);
         collectCoinAtCurrentPosition();
-        renderer.draw(map, player, coins);
+        renderer.draw(map, player, progress, coins);
 
         if (allCoinsCollected()) {
             renderer.showMessage("You collected all coins!");
@@ -92,8 +96,8 @@ public class Game {
         for (Coin coin : coins) {
             if (!coin.isCollected() && coin.isAt(player.getX(), player.getY())) {
                 coin.collect();
-                player.addScore(coin.getValue());
-                renderer.showMessage("Coin collected! Score: " + player.getScore());
+                progress.addScore(coin.getValue());
+                renderer.showMessage("Coin collected! Score: " + progress.getScore());
             }
         }
     }

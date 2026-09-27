@@ -1,10 +1,10 @@
 package game.ui;
 
-import java.util.List;
-
 import game.world.Map;
+import game.world.Progress;
 import game.world.gobjects.Coin;
 import game.world.gobjects.Player;
+import java.util.List;
 
 /** Draws the game in text mode. */
 public class TerminalRenderer implements IRenderer {
@@ -16,7 +16,7 @@ public class TerminalRenderer implements IRenderer {
     }
 
     @Override
-    public void draw(Map map, Player player, List<Coin> coins) {
+    public void draw(Map map, Player player, Progress progress, List<Coin> coins) {
         System.out.println();
         for (int y = 0; y < map.getHeight(); y++) {
             StringBuilder line = new StringBuilder();
@@ -25,7 +25,7 @@ public class TerminalRenderer implements IRenderer {
             }
             System.out.println(line.toString());
         }
-        System.out.println("Score: " + player.getScore());
+        System.out.println("Score: " + progress.getScore());
     }
 
     private char symbolAt(Map map, Player player, List<Coin> coins, int x, int y) {

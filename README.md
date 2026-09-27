@@ -10,16 +10,8 @@ e nenhuma linha de "funcionalidade nova". O que mudou foi **onde cada responsabi
 
 ## Como executar o jogo
 
-### Pelo Eclipse
-
-1. Abra o projeto no Eclipse como um projeto Java comum.
-2. Selecione a pasta `jogo-desacoplado` e confirme
-3. Botão direito em `Main.java` → `Run As` → `Java Application`
-
-### Pelo terminal
-
 ```bash
-cd jogo-desacoplado
+cd jogo-das-modeas
 javac -d bin $(find src/main/java -name "*.java")
 java -cp bin game.Main
 ```
@@ -63,10 +55,11 @@ src/main/java/game/
 │   ├── TerminalRenderer.java      ← desenha no console
 │   └── GUIRenderer.java           ← desenha numa janela gráfica (Swing)
 └── world/
-   ├── Map.java                   ← mapa e paredes
+   ├── Map.java                  ← mapa e paredes
+   ├── Progress.java             ← pontuação acumulada entre missões
    └── gobjects/
       ├── GameObject.java        ← objeto do jogo
-      ├── Player.java            ← jogador e pontuação
+      ├── Player.java            ← posição e movimento do jogador
       └── Coin.java              ← moedas coletáveis
 ```
 
@@ -79,12 +72,16 @@ src/main/java/game/
 `Game` não usa `new` para nada que venha de fora. Tudo chega pelo construtor:
 
 ```java
-public Game(Map map, Player player, List<Coin> coins,
+public Game(Map map, Player player, Progress progress,
+            List<Coin> coins,
             IInputs input, IRenderer renderer)
 ```
 
 Por isso o teste consegue entregar um controle de mentira, e o `Main` consegue
 entregar um joystick, sem que `Game` saiba da diferença.
+
+`Player` representa o avatar na missão; `Progress` guarda a pontuação
+cumulativa e pode ser compartilhado por várias instâncias de `Game`.
 
 ### 2. Interface para contrato, classe abstrata para reúso
 

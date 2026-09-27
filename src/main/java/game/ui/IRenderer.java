@@ -1,6 +1,7 @@
 package game.ui;
 
 import game.world.Map;
+import game.world.Progress;
 import game.world.gobjects.Coin;
 import game.world.gobjects.Player;
 import java.util.List;
@@ -18,6 +19,6 @@ public interface IRenderer {
 
     void showMessage(String message);
 
-    void draw(Map map, Player player, List<Coin> coins);
+    void draw(Map map, Player player, Progress progress, List<Coin> coins);
 
 }
