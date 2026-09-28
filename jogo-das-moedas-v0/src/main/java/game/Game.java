@@ -7,13 +7,13 @@ import java.util.Scanner;
  * VERSAO 1 - ALTO ACOPLAMENTO / BAIXA COESAO
  *
  * Esta classe faz TUDO sozinha:
- *   1. guarda o mapa;
+ *   1. guarda o grid;
  *   2. guarda a posicao e a pontuacao do jogador;
  *   3. cria o Scanner e le o teclado;
  *   4. traduz a tecla digitada em movimento;
  *   5. verifica colisao com parede;
  *   6. controla a coleta de moedas;
- *   7. desenha o mapa na tela;
+ *   7. desenha o grid na tela;
  *   8. controla o laco principal do jogo.
  *
  * Sao oito responsabilidades numa classe so. Repare que nao existe
@@ -22,7 +22,7 @@ import java.util.Scanner;
 public class Game {
 
     private final List<char[][]> levels;
-    private char[][] map;
+    private char[][] grid;
     private int levelNumber;
 
     private int playerX;
@@ -45,17 +45,17 @@ public class Game {
     }
 
     private void loadLevel() {
-        map = levels.get(levelNumber - 1);
+        grid = levels.get(levelNumber - 1);
         playerX = 0;
         playerY = 0;
         remainingCoins = 0;
-        for (int row = 0; row < map.length; row++) {
-            for (int column = 0; column < map[row].length; column++) {
-                if (map[row][column] == '@') {
+        for (int row = 0; row < grid.length; row++) {
+            for (int column = 0; column < grid[row].length; column++) {
+                if (grid[row][column] == '@') {
                     playerX = column;
                     playerY = row;
-                    map[row][column] = ' ';
-                } else if (map[row][column] == '$') {
+                    grid[row][column] = ' ';
+                } else if (grid[row][column] == '$') {
                     remainingCoins++;
                 }
             }
@@ -117,7 +117,7 @@ public class Game {
             }
         }
 
-        if (map[destinationY][destinationX] == '#') {
+        if (grid[destinationY][destinationX] == '#') {
             System.out.println("Wall! You cannot go there.");
             return;
         }
@@ -125,8 +125,8 @@ public class Game {
         playerX = destinationX;
         playerY = destinationY;
 
-        if (map[playerY][playerX] == '$') {
-            map[playerY][playerX] = ' ';
+        if (grid[playerY][playerX] == '$') {
+            grid[playerY][playerX] = ' ';
             score += 10;
             remainingCoins -= 1;
             System.out.println("Coin collected! Score: " + score);
@@ -139,13 +139,13 @@ public class Game {
     // Desenhar tambem esta aqui dentro, preso ao System.out.
     private void draw() {
         System.out.println();
-        for (int row = 0; row < map.length; row++) {
+        for (int row = 0; row < grid.length; row++) {
             StringBuilder text = new StringBuilder();
-            for (int column = 0; column < map[row].length; column++) {
+            for (int column = 0; column < grid[row].length; column++) {
                 if (row == playerY && column == playerX)
                     text.append('@');
                 else
-                    text.append(map[row][column]);
+                    text.append(grid[row][column]);
             }
             System.out.println(text.toString());
         }

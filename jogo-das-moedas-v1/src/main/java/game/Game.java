@@ -31,7 +31,7 @@ import java.util.List;
 public class Game {
 
     private final List<char[][]> levels;
-    private char[][] map;
+    private char[][] grid;
     private int levelNumber;
 
     private Player player;
@@ -86,30 +86,30 @@ public class Game {
     }
 
     /**
-     * ACOPLAMENTO: este metodo apaga '@' e '$' de dentro de map - e map e o
-     * MESMO array que esta guardado na lista levels, nao uma copia. O mapa
+     * ACOPLAMENTO: este metodo apaga '@' e '$' de dentro de grid - e grid e o
+     * MESMO array que esta guardado na lista levels, nao uma copia. O grid
      * original foi destruido ao ser carregado.
      *
      * Na pratica o jogo nunca volta para uma fase ja jogada, entao o bug nao
      * aparece. Mas ele esta aqui: reinicie a fase 1 e voce vai encontrar um
-     * mapa sem jogador e sem moedas. Isso e o preco de passar estado mutavel
+     * grid sem jogador e sem moedas. Isso e o preco de passar estado mutavel
      * cru de uma classe para outra.
      */
     private void loadLevel() {
-        map = levels.get(levelNumber - 1);
+        grid = levels.get(levelNumber - 1);
         coins = new ArrayList<>();
         int startX = 0;
         int startY = 0;
 
-        for (int row = 0; row < map.length; row++) {
-            for (int column = 0; column < map[row].length; column++) {
-                if (map[row][column] == '@') {
+        for (int row = 0; row < grid.length; row++) {
+            for (int column = 0; column < grid[row].length; column++) {
+                if (grid[row][column] == '@') {
                     startX = column;
                     startY = row;
-                    map[row][column] = ' ';
-                } else if (map[row][column] == '$') {
+                    grid[row][column] = ' ';
+                } else if (grid[row][column] == '$') {
                     coins.add(new Coin(column, row, 10));
-                    map[row][column] = ' ';
+                    grid[row][column] = ' ';
                 }
             }
         }
@@ -123,7 +123,7 @@ public class Game {
         while (running) {
             while (running && remainingCoins > 0) {
                 clear();
-                renderer.draw(map, player, coins, score, remainingCoins, levelNumber, deviceName());
+                renderer.draw(grid, player, coins, score, remainingCoins, levelNumber, deviceName());
                 waitCommand(readCommand());
             }
 
@@ -189,7 +189,7 @@ public class Game {
             }
         }
 
-        if (!player.canMoveTo(map, destinationX, destinationY)) {
+        if (!player.canMoveTo(grid, destinationX, destinationY)) {
             System.out.println("Wall! You cannot go there.");
             return;
         }
