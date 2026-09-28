@@ -27,6 +27,7 @@ public class VirtualJoystickInput implements IInputs {
 
     private volatile int mouseX = 100;
     private volatile int mouseY = 100;
+    private CommandsEnum lastCommand = CommandsEnum.NONE;
 
     private final JFrame frame;
     private final JoystickPanel panel;
@@ -46,6 +47,9 @@ public class VirtualJoystickInput implements IInputs {
         while (true) {
             CommandsEnum cmd = getCurrentCommand();
             if (cmd != CommandsEnum.NONE) {
+                lastCommand = CommandsEnum.NONE;
+            } else if (cmd != lastCommand) {
+                lastCommand = cmd;
                 return cmd;
             }
 

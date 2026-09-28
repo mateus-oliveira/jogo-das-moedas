@@ -1,15 +1,15 @@
 package game.ui;
 
-import game.enums.InputsEnum;
+import game.enums.RendererEnum;
 import game.utils.IFactory;
 
-public class RendererFactory implements IFactory<IRenderer, InputsEnum> {
+public class RendererFactory implements IFactory<IRenderer, RendererEnum> {
 
     @Override
-    public IRenderer create(InputsEnum key) {
+    public IRenderer create(RendererEnum key) {
         return switch (key) {
-            case BUTTONS, JOYSTICK -> new GUIRenderer();
-            case KEYBOARD -> new TerminalRenderer();
+            case GUI -> new GUIRenderer();
+            case TERMINAL -> new TerminalRenderer();
         };
     }
 }

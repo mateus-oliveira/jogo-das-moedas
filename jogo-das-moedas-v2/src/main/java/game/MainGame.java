@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import game.enums.InputsEnum;
+import game.enums.RendererEnum;
 import game.inputs.IInputs;
 import game.inputs.InputsFactory;
 import game.ui.IRenderer;
@@ -24,32 +25,26 @@ import game.world.gobjects.Player;
  * o Player, o Grid e as Coins nunca mudam - Level so enxerga IInputs e
  * IRenderer.
  *
- * Uma ressalva honesta: hoje um unico InputsEnum escolhe o PAR entrada+saida,
- * porque RendererFactory recebe o mesmo enum que InputsFactory. Entrada e
- * saida PODERIAM ser escolhidas separadamente - e o desacoplamento e
- * justamente o que torna isso possivel - mas este MainGame ainda nao faz
- * isso. Separar os dois seletores e um exercicio da aula, e repare que ele
- * nao exige tocar em Level, Player, Coin nem Grid.
+ * Entrada e saida sao escolhidas independentemente por enums e factories
+ * proprios, sem exigir mudancas em Level, Player, Coin ou Grid.
  */
 public class MainGame {
 
     public static void main(String[] args) throws IOException {
-        int levelNumber = args.length > 1 ? Integer.parseInt(args[1]) : 1;
-        List<Grid> grids = new LevelLoader().loadAll(Path.of("levels.txt"));
-        InputsEnum mode = args.length > 0
-            ? InputsEnum.from(args[0])
-            : InputsEnum.from();
+        LaunchOptions options = loadInput(args);
 
-        if (levelNumber < 1 || levelNumber > grids.size())
+        List<Grid> grids = new LevelLoader().loadAll(Path.of("levels.txt"));
+
+        if (options.levelNumber() < 1 || options.levelNumber() > grids.size())
             throw new IllegalArgumentException(
                 "Level must be between 1 and " + grids.size() + ".");
 
-        IInputs input = new InputsFactory().create(mode);
-        IRenderer renderer = new RendererFactory().create(mode);
+        IInputs input = new InputsFactory().create(options.inputMode());
+        IRenderer renderer = new RendererFactory().create(options.rendererMode());
 
         Progress progress = new Progress();
 
-        for (int index = levelNumber - 1; index < grids.size(); index++) {
+        for (int index = options.levelNumber() - 1; index < grids.size(); index++) {
             Grid grid = grids.get(index);
             Player player = new Player(grid.getPlayerX(), grid.getPlayerY());
 
@@ -65,4 +60,44 @@ public class MainGame {
         }
         renderer.showMessage("FIM DE JOGO - Score: " + progress.getScore());
     }
+
+    private static LaunchOptions loadInput(String[] args) {
+        InputsEnum inputMode = null;
+        RendererEnum rendererMode = null;
+        int levelNumber = 1;
+
+        for (int index = 0; index < args.length; index++) {
+            switch (args[index]) {
+                case "-i" -> {
+                    if (++index >= args.length)
+                        throw new IllegalArgumentException("Missing value for -i.");
+                    inputMode = InputsEnum.from(args[index]);
+                }
+                case "-r" -> {
+                    if (++index >= args.length)
+                        throw new IllegalArgumentException("Missing value for -r.");
+                    rendererMode = RendererEnum.from(args[index]);
+                }
+                case "-l" -> {
+                    if (++index >= args.length)
+                        throw new IllegalArgumentException("Missing value for -l.");
+                    levelNumber = Integer.parseInt(args[index]);
+                }
+                default -> throw new IllegalArgumentException(
+                    "Unknown option: " + args[index] + ". Use -i, -r, or -l.");
+            }
+        }
+
+        return new LaunchOptions(
+            inputMode == null ? InputsEnum.from() : inputMode,
+            rendererMode == null ? RendererEnum.from() : rendererMode,
+            levelNumber
+        );
+    }
+
+    private record LaunchOptions(
+        InputsEnum inputMode,
+        RendererEnum rendererMode,
+        int levelNumber
+    ) {}
 }

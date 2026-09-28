@@ -24,41 +24,35 @@ java -cp bin game.MainGame
 
 Os cinco mapas ficam em `levels.txt`, na raiz do projeto, separados por uma
 linha `---`. Use `#` para paredes, `.` para chao, `@` para o jogador e `$`
-para moedas. O nivel 1 e o padrao. Para iniciar em outro nivel, informe o
-numero depois do modo de entrada/saida; a progressao segue ate o ultimo:
+para moedas. O nível 1 é o padrão. A entrada padrão é teclado, o renderer
+padrão é terminal e ambas as opções podem ser omitidas independentemente:
 
 ```bash
-java -cp bin game.MainGame keyboard 3
-java -cp bin game.MainGame buttons 5
+java -cp bin game.MainGame
+java -cp bin game.MainGame -i buttons
+java -cp bin game.MainGame -r gui
+java -cp bin game.MainGame -i joystick -r gui -l 5
 ```
 
 ### Trocando entrada e saída
 
-Esta é a demonstração principal. O **mesmo jogo**, com três pares diferentes
-de entrada/saída, definidos por `InputsEnum`:
+Esta é a demonstração principal. O **mesmo jogo** recebe opções independentes:
+`-i` escolhe a entrada (`keyboard`, `buttons` ou `joystick`) e `-r` escolhe o
+renderer (`terminal` ou `gui`). A opção `-l` escolhe o nível inicial.
 
 ```bash
-java -cp bin game.MainGame              # KEYBOARD: teclado + terminal
-java -cp bin game.MainGame buttons      # BUTTONS: botoes + janela grafica
-java -cp bin game.MainGame joystick     # JOYSTICK: joystick + janela grafica
+java -cp bin game.MainGame -i keyboard -r terminal
+java -cp bin game.MainGame -i keyboard -r gui
+java -cp bin game.MainGame -i buttons -r terminal
+java -cp bin game.MainGame -i joystick -r gui
 ```
 
 Pelo Eclipse: `Run As` → `Run Configurations...` → aba `Arguments` →
-escreva `keyboard`, `buttons` ou `joystick` em *Program arguments*.
+escreva, por exemplo, `-i keyboard -r gui` em *Program arguments*.
 
-> Em cada modo, o jogo abre janelas diferentes (`GUIRenderer`, `ButtonInputs`,
-> `VirtualJoystickInput`), mas a fase não precisa saber disso. Quem junta as peças
-> é só o `MainGame`. O ponto é que **a classe `Level` não muda em nenhum dos três casos**.
-
-> ⚠️ **Honestidade sobre o projeto atual:** hoje um único `InputsEnum` escolhe o par
-> entrada+saída — `RendererFactory` recebe o mesmo enum que `InputsFactory`, então
-> `BUTTONS` e `JOYSTICK` obrigam `GUIRenderer`, e `KEYBOARD` obriga `TerminalRenderer`.
-> As duas escolhas *poderiam* ser independentes, e é isso que o desacoplamento permite —
-> mas o `MainGame` ainda não faz isso. **Separar os dois seletores é um bom exercício:**
-> repare que dá para fazer sem tocar em `Level`, `Player`, `Coin` ou `Grid`.
-
-`InputsFactory` e `RendererFactory` recebem o mesmo `InputsEnum`: `BUTTONS`,
-`JOYSTICK` ou `KEYBOARD`. Sem argumento, `MainGame` usa `KEYBOARD`.
+O jogo pode combinar qualquer entrada com qualquer renderer. Quem junta as
+peças é só o `MainGame`; a classe `Level` não muda conforme a combinação.
+`InputsFactory` recebe `InputsEnum` e `RendererFactory` recebe `RendererEnum`.
 
 As duas implementam a mesma interface genérica, que tem **dois** parâmetros de tipo —
 `E` é o que se cria, `K` é a chave que decide qual criar:
@@ -70,7 +64,7 @@ public interface IFactory<E, K> {
 ```
 
 Ou seja, `InputsFactory implements IFactory<IInputs, InputsEnum>` e
-`RendererFactory implements IFactory<IRenderer, InputsEnum>`.
+`RendererFactory implements IFactory<IRenderer, RendererEnum>`.
 
 ---
 
@@ -82,7 +76,8 @@ src/main/java/game/
 ├── Level.java                     ← regras e fluxo de uma fase
 ├── enums/
 │   ├── CommandsEnum.java          ← comandos reconhecidos pela fase
-│   └── InputsEnum.java            ← modos de entrada e saída
+│   ├── InputsEnum.java             ← modos de entrada
+│   └── RendererEnum.java           ← modos de saída
 ├── inputs/
 │   ├── IInputs.java               ← contrato das entradas
 │   ├── InputsFactory.java          ← cria entrada conforme InputsEnum
@@ -94,7 +89,7 @@ src/main/java/game/
 │   └── IFactory.java               ← contrato generico para factories
 ├── ui/
 │   ├── IRenderer.java             ← contrato da saída
-│   ├── RendererFactory.java        ← cria saida conforme InputsEnum
+│   ├── RendererFactory.java        ← cria saida conforme RendererEnum
 │   ├── TerminalRenderer.java      ← desenha no console
 │   └── GUIRenderer.java           ← desenha numa janela gráfica (Swing)
 └── world/
@@ -122,9 +117,9 @@ public Level(Grid grid, Player player, Progress progress,
 `MainGame` carrega cada `Grid`, monta o `Level` correspondente e preserva o
 objeto `Progress` entre as fases. A fase depende das interfaces `IInputs` e
 `IRenderer`, sem conhecer as implementacoes concretas. `InputsFactory` e
-`RendererFactory` escolhem essas implementacoes com base no modo informado e
-implementam `IFactory<IInputs, InputsEnum>` e `IFactory<IRenderer, InputsEnum>`,
-respectivamente.
+`RendererFactory` escolhem essas implementacoes com base em opções
+independentes e implementam `IFactory<IInputs, InputsEnum>` e
+`IFactory<IRenderer, RendererEnum>`, respectivamente.
 
 `Player` representa o avatar na fase; `Progress` guarda a pontuação
 cumulativa e é compartilhado pelas instâncias de `Level` criadas por `MainGame`.
@@ -158,7 +153,7 @@ dependências**. Abra os dois projetos lado a lado:
 | `KeyboardInput` | `KeyboardInput` + **`IInputs`** | surgiu o contrato: agora existe "uma entrada", não "o teclado" |
 | `JoystickInput` | `VirtualJoystickInput`, `ButtonInputs` + `InputsFactory` | de 2 entradas para 3, **sem tocar nas regras** |
 | `ConsoleRenderer` | `TerminalRenderer`, `GUIRenderer` + **`IRenderer`** | mesma história do outro lado |
-| `boolean useJoystick` | `InputsEnum` + factories | o `if/else` espalhado virou uma escolha em um lugar só |
+| `boolean useJoystick` | `InputsEnum` + `RendererEnum` + factories | as escolhas de entrada e saída ficam centralizadas e independentes |
 | `String` cru como comando | `CommandsEnum` | o comando virou um tipo, e carrega o próprio delta de movimento |
 | `LevelLoader` | `utils/LevelLoader` | recebe o `Path` em vez de fixar `"levels.txt"` |
 
