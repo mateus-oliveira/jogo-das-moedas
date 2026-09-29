@@ -25,14 +25,17 @@ import game.enums.CommandsEnum;
  */
 public class VirtualJoystickInput implements IInputs {
 
+    private static final long MOVE_INTERVAL_NANOS = 1_000_000_000L;
+
     private volatile int mouseX = 100;
     private volatile int mouseY = 100;
-    private CommandsEnum lastCommand = CommandsEnum.NONE;
+    private long lastMoveAtNanos;
 
     private final JFrame frame;
     private final JoystickPanel panel;
 
     public VirtualJoystickInput() {
+        lastMoveAtNanos = System.nanoTime() - MOVE_INTERVAL_NANOS;
         this.panel = new JoystickPanel();
         this.frame = new JFrame("Virtual Joystick");
         frame.add(panel);
@@ -46,11 +49,12 @@ public class VirtualJoystickInput implements IInputs {
     public CommandsEnum waitCommand() {
         while (true) {
             CommandsEnum cmd = getCurrentCommand();
-            if (cmd == CommandsEnum.NONE) {
-                lastCommand = CommandsEnum.NONE;
-            } else if (cmd != lastCommand) {
-                lastCommand = cmd;
-                return cmd;
+            if (cmd != CommandsEnum.NONE) {
+                long now = System.nanoTime();
+                if (now - lastMoveAtNanos >= MOVE_INTERVAL_NANOS) {
+                    lastMoveAtNanos = now;
+                    return cmd;
+                }
             }
 
             try {
