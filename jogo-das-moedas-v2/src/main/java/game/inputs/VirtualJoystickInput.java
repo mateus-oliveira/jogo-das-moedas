@@ -46,7 +46,7 @@ public class VirtualJoystickInput implements IInputs {
     public CommandsEnum waitCommand() {
         while (true) {
             CommandsEnum cmd = getCurrentCommand();
-            if (cmd != CommandsEnum.NONE) {
+            if (cmd == CommandsEnum.NONE) {
                 lastCommand = CommandsEnum.NONE;
             } else if (cmd != lastCommand) {
                 lastCommand = cmd;
